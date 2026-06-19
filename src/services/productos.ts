@@ -1,10 +1,23 @@
 import client from '@/api/client'
-import type { Producto, ProductoCreate, ProductoUpdate } from '@/types/producto'
+import type { Producto, ProductoCreate, ProductoUpdate, PaginatedProductoResponse } from '@/types/producto'
+
+export interface BuscarParams {
+  q?: string
+  categoria?: string
+  atributo?: string
+  page?: number
+  limit?: number
+}
 
 export const productosService = {
   listar: (limit = 20, offset = 0) =>
     client
       .get<Producto[]>('/productos/', { params: { limit, offset } })
+      .then((r) => r.data),
+
+  buscar: (params: BuscarParams) =>
+    client
+      .get<PaginatedProductoResponse>('/productos/buscar', { params })
       .then((r) => r.data),
 
   obtener: (id: string) =>

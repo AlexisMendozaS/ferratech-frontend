@@ -7,6 +7,7 @@ export interface Producto {
   id: string
   nombre: string
   descripcion: string
+  precio?: number | null
   imagen_principal: string | null
   categorias: string[]
   atributos: Atributo[]
@@ -16,6 +17,7 @@ export interface Producto {
 export interface ProductoCreate {
   nombre: string
   descripcion: string
+  precio?: number | null
   imagen_principal?: string | null
   categorias?: string[]
   atributos?: Atributo[]
@@ -23,3 +25,10 @@ export interface ProductoCreate {
 }
 
 export type ProductoUpdate = Partial<ProductoCreate>
+
+export interface PaginatedProductoResponse {
+  total: number
+  page: number
+  limit: number
+  productos: Producto[]
+}
