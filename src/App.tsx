@@ -4,6 +4,7 @@ import ProductosPage from '@/pages/ProductosPage'
 import ProductoDetallePage from '@/pages/ProductoDetallePage'
 import CarritoPage from '@/pages/CarritoPage'
 import ProductoFormPage from '@/pages/admin/ProductoFormPage'
+import ProductosAdminPage from '@/pages/admin/ProductosAdminPage'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/carrito" element={<CarritoPage />} />
 
         {/* Admin */}
+        <Route path="/admin/productos" element={<ProductosAdminPage />} />
         <Route path="/admin/productos/nuevo" element={<ProductoFormPage />} />
         <Route path="/admin/productos/:id/editar" element={<ProductoFormPage />} />
       </Routes>
