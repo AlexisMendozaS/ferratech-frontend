@@ -13,6 +13,7 @@
     "@fontsource-variable/montserrat": "^5.2.8",
     "@fontsource-variable/open-sans": "^5.2.7",
     "@hookform/resolvers": "^5.4.0",
+    "@react-pdf/renderer": "^4.5.1",
     "@tanstack/react-table": "^8.21.3",
     "axios": "^1.17.0",
     "class-variance-authority": "^0.7.1",
