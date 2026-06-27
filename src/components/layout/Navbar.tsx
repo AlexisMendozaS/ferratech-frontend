@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 import { Bell, Search, ShoppingCart, User, Wrench } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { useCarritoStore } from '@/store/carritoStore'
 
 const NAV_LINKS = [
   { label: 'Inicio', href: '/' },
@@ -12,14 +13,12 @@ const NAV_LINKS = [
   { label: 'Preguntas Frecuentes', href: '/faq' },
 ]
 
-/* Cart count — se conectará a Zustand en T-20 */
-const useCartCount = () => 0
-
 export function Navbar() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
-  const cartCount = useCartCount()
+  const totalItems = useCarritoStore((s) => s.totalItems)
+  const cartCount = totalItems()
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

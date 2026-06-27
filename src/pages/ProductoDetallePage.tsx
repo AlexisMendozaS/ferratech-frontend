@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronRight, Minus, Plus, ShoppingCart, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+import { useCarritoStore } from '@/store/carritoStore'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -103,6 +104,8 @@ export default function ProductoDetallePage() {
   const [cantidad, setCantidad] = useState(1)
   const [adding, setAdding] = useState(false)
 
+  const addItem = useCarritoStore((s) => s.addItem)
+
   const prevIdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
@@ -154,20 +157,28 @@ export default function ProductoDetallePage() {
     producto !== null &&
     (producto.atributos.length === 0 || todasSeleccionadas)
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!producto || !puedeAñadir) return
     setAdding(true)
-    await new Promise((r) => setTimeout(r, 300)) // simula latencia
-    setAdding(false)
 
     const variante = Object.entries(seleccion)
       .filter(([, v]) => v)
       .map(([k, v]) => `${k}: ${v}`)
       .join(' · ')
 
+    addItem({
+      id_producto: producto.id,
+      nombre: producto.nombre,
+      imagen: producto.imagen_principal ?? null,
+      variante_seleccionada: variante || null,
+      cantidad,
+    })
+
     toast.success('Añadido al carrito', {
       description: variante || producto.nombre,
     })
+
+    setTimeout(() => setAdding(false), 300)
   }
 
   const categoriaNombres = producto
