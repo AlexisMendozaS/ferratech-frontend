@@ -20,7 +20,16 @@ export interface CotizacionPayload {
 
 export interface CotizacionResponse {
   id: string
-  mensaje: string
+  fecha: string
+  estado: 'pendiente' | 'atendida'
+  cliente: ClienteData
+  detalle: {
+    id_producto: string
+    nombre_producto: string
+    variante_seleccionada: string | null
+    cantidad: number
+    precio_unitario: number | null
+  }[]
 }
 
 export function buildPayload(cliente: ClienteData, items: CartItem[]): CotizacionPayload {

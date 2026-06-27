@@ -54,7 +54,7 @@ export function Navbar() {
           className="flex shrink-0 items-center gap-2 font-bold text-lg tracking-wide"
         >
           <Wrench className="size-5 text-accent" />
-          <span className="hidden xs:inline sm:inline">FerraTech</span>
+          <span className="hidden sm:inline">FerraTech</span>
         </Link>
 
         {/* Buscador */}
