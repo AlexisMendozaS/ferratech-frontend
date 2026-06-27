@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronRight, Minus, Plus, ShoppingCart, Zap } from 'lucide-react'
+import { ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCarritoStore } from '@/store/carritoStore'
 
@@ -19,9 +19,9 @@ function Gallery({ imagen, nombre }: { imagen: string | null; nombre: string }) 
   const thumbnails = [imagen, null, null, null, null].slice(0, 5)
 
   return (
-    <div className="flex gap-3">
-      {/* Miniaturas */}
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3 sm:flex-row">
+      {/* Miniaturas — fila horizontal en móvil, columna en desktop */}
+      <div className="flex flex-row gap-2 sm:flex-col">
         {thumbnails.map((src, i) => (
           <button
             key={i}
@@ -201,7 +201,7 @@ export default function ProductoDetallePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 pb-24 sm:px-6 sm:pb-8">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1 text-sm text-muted-foreground" aria-label="Ruta">
         <Link to="/" className="hover:text-foreground transition-colors">Inicio</Link>
@@ -329,8 +329,8 @@ export default function ProductoDetallePage() {
 
           <Separator />
 
-          {/* Acciones */}
-          <div className="flex flex-col gap-3">
+          {/* Acciones — ocultas en móvil, se muestran en sticky bar */}
+          <div className="hidden sm:flex flex-col gap-3">
             <Button
               size="lg"
               disabled={!puedeAñadir || adding}
@@ -340,16 +340,41 @@ export default function ProductoDetallePage() {
               <ShoppingCart className="size-4" />
               {adding ? 'Añadiendo…' : 'Añadir al Carrito'}
             </Button>
-            <Button
-              size="lg"
-              disabled={!puedeAñadir}
-              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Zap className="size-4" />
-              Comprar Ahora
-            </Button>
           </div>
         </div>
+      </div>
+
+      {/* Barra sticky inferior — solo móvil */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur-sm sm:hidden">
+        {/* Selector de cantidad compacto */}
+        <div className="flex items-center rounded-md border">
+          <button
+            aria-label="Reducir cantidad"
+            className="flex size-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+            onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+            disabled={cantidad <= 1}
+          >
+            <Minus className="size-3.5" />
+          </button>
+          <span className="w-8 text-center text-sm font-medium tabular-nums">{cantidad}</span>
+          <button
+            aria-label="Aumentar cantidad"
+            className="flex size-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+            onClick={() => setCantidad((c) => c + 1)}
+          >
+            <Plus className="size-3.5" />
+          </button>
+        </div>
+
+        <Button
+          size="lg"
+          disabled={!puedeAñadir || adding}
+          onClick={handleAddToCart}
+          className="flex-1 gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
+        >
+          <ShoppingCart className="size-4" />
+          {adding ? 'Añadiendo…' : 'Añadir al Carrito'}
+        </Button>
       </div>
 
       {/* Descripción */}

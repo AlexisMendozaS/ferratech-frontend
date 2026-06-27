@@ -1,8 +1,14 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Search, ShoppingCart, User, Wrench } from 'lucide-react'
+import { Bell, Menu, Search, ShoppingCart, User, Wrench } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { useCarritoStore } from '@/store/carritoStore'
 
 const NAV_LINKS = [
@@ -17,6 +23,7 @@ export function Navbar() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const totalItems = useCarritoStore((s) => s.totalItems)
   const cartCount = totalItems()
 
@@ -29,14 +36,25 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-md">
       {/* Barra principal */}
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
+        {/* Botón hamburguesa — solo móvil */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex sm:hidden shrink-0 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+          aria-label="Abrir menú"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <Menu className="size-5" />
+        </Button>
+
         {/* Logo */}
         <Link
           to="/"
           className="flex shrink-0 items-center gap-2 font-bold text-lg tracking-wide"
         >
           <Wrench className="size-5 text-accent" />
-          <span>FerraTech</span>
+          <span className="hidden xs:inline sm:inline">FerraTech</span>
         </Link>
 
         {/* Buscador */}
@@ -48,8 +66,8 @@ export function Navbar() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar Productos y mas..."
-            className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 outline-none"
+            placeholder="Buscar productos..."
+            className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
           />
           <button
             type="submit"
@@ -62,11 +80,11 @@ export function Navbar() {
 
         {/* Iconos derecha */}
         <div className="flex shrink-0 items-center gap-1">
-          {/* Notificaciones */}
+          {/* Notificaciones — oculto en móvil */}
           <Button
             variant="ghost"
             size="icon"
-            className="text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+            className="hidden sm:flex text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
             aria-label="Notificaciones"
           >
             <Bell className="size-5" />
@@ -89,7 +107,7 @@ export function Navbar() {
             </Link>
           </Button>
 
-          {/* Iniciar Sesión */}
+          {/* Iniciar Sesión — oculto en móvil */}
           <Button
             asChild
             variant="ghost"
@@ -103,8 +121,8 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Barra de navegación secundaria */}
-      <nav className="border-t border-white/10">
+      {/* Barra de navegación secundaria — solo desktop */}
+      <nav className="hidden sm:block border-t border-white/10">
         <ul className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 sm:px-6 scrollbar-none">
           {NAV_LINKS.map((link) => (
             <li key={link.href + link.label} className="shrink-0">
@@ -125,6 +143,50 @@ export function Navbar() {
           ))}
         </ul>
       </nav>
+
+      {/* Menú móvil — Sheet lateral izquierdo */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="sm:hidden">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Wrench className="size-4 text-primary" />
+              FerraTech
+            </SheetTitle>
+          </SheetHeader>
+
+          <nav className="flex-1 overflow-y-auto py-4">
+            <ul className="flex flex-col">
+              {NAV_LINKS.map((link) => (
+                <li key={link.href + link.label}>
+                  <NavLink
+                    to={link.href}
+                    end={link.href === '/'}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center px-5 py-3 text-sm font-medium transition-colors border-l-2 ${
+                        isActive
+                          ? 'border-primary text-primary bg-primary/5'
+                          : 'border-transparent text-foreground hover:bg-muted hover:border-muted-foreground/30'
+                      }`
+                    }
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="border-t p-4">
+            <Button asChild variant="outline" className="w-full gap-2" size="sm">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                <User className="size-4" />
+                Iniciar Sesión
+              </Link>
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </header>
   )
 }

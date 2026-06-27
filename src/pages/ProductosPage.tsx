@@ -6,6 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { ProductCard, ProductCardSkeleton } from '@/components/productos/ProductCard'
 import { productosService } from '@/services/productos'
 import { categoriasService } from '@/services/categorias'
@@ -296,24 +302,17 @@ export default function ProductosPage() {
           </div>
         </div>
 
-        {/* Sidebar mobile overlay */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div
-              className="absolute inset-0 bg-black/50"
-              onClick={() => setSidebarOpen(false)}
-            />
-            <div className="absolute left-0 top-0 h-full w-72 bg-card p-5 shadow-xl overflow-y-auto">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold">Filtros</h2>
-                <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
-                  <X className="size-4" />
-                </Button>
-              </div>
+        {/* Sidebar mobile — Sheet */}
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent side="left" className="lg:hidden w-72 max-w-full">
+            <SheetHeader>
+              <SheetTitle>Filtros</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto p-5">
               {sidebar}
             </div>
-          </div>
-        )}
+          </SheetContent>
+        </Sheet>
 
         {/* Contenido principal */}
         <div className="min-w-0 flex-1">
@@ -323,7 +322,7 @@ export default function ProductosPage() {
               <Button variant="outline" onClick={fetchProductos}>Reintentar</Button>
             </div>
           ) : loading ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: LIMIT }).map((_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
@@ -332,7 +331,7 @@ export default function ProductosPage() {
             <EmptyState query={q} />
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {resultado?.productos.map((p) => (
                   <ProductCard key={p.id} producto={p} />
                 ))}
