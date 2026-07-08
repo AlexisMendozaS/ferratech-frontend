@@ -4,6 +4,7 @@ import { ShoppingCart } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useCarritoStore } from '@/store/carritoStore'
 import type { Producto } from '@/types/producto'
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export function ProductCard({ producto }: Props) {
+  const addItem = useCarritoStore((s) => s.addItem)
+
   return (
     <article className="group flex flex-col rounded-lg border border-border bg-card shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       {/* Imagen */}
@@ -59,7 +62,12 @@ export function ProductCard({ producto }: Props) {
           className="mt-auto w-full gap-1.5 bg-accent hover:bg-accent/90 text-accent-foreground"
           onClick={(e) => {
             e.preventDefault()
-            // TODO: Zustand cart T-20
+            addItem({
+              id_producto: producto.id,
+              nombre: producto.nombre,
+              imagen: producto.imagen_principal,
+              variante_seleccionada: null,
+            })
           }}
         >
           <ShoppingCart className="size-3.5" />
