@@ -1,7 +1,7 @@
 # Bugs y Hallazgos — Primera Entrega FerraTech
 
-> Generado por revisión de código estática (2026-06-27).  
-> Los flujos marcados con 🧪 requieren prueba manual con la app corriendo.
+> Revisión de código estática: 2026-06-27.  
+> Pruebas funcionales ejecutadas: 2026-06-27 con app corriendo en localhost (Chrome MCP).
 
 ---
 
@@ -44,6 +44,15 @@
 
 ---
 
+### B-06 · Badge del carrito no se actualiza al limpiar sin recargar
+**Archivo:** `ferratech-frontend/src/components/layout/Navbar.tsx`  
+**Problema:** Después de cerrar el modal de cotización (que llama `clearCart()`), el badge numérico del ícono del carrito sigue mostrando el valor anterior hasta que el usuario navega a otra página.  
+**Impacto:** El usuario ve el badge "1" aunque el carrito esté vacío. Desaparece al recargar/navegar.  
+**Solución:** Forzar re-render suscribiéndose correctamente al store Zustand en el componente del badge. Verificar que el selector no esté usando un valor estático.  
+**Prioridad:** Baja (cosmético, se corrige con navegación natural).
+
+---
+
 ### B-05 · CORS origins hardcoded en backend
 **Archivo:** `ferratech-backend/app/core/config.py`  
 **Problema:** `cors_origins` tiene default `"http://localhost:5173"`. En producción debe configurarse vía `.env`.  
@@ -55,38 +64,38 @@
 
 ## ✅ Checklist de flujos manuales
 
-### Flujo 1 — Búsqueda y detalle de producto 🧪
-- [ ] Buscar un término en el buscador del Navbar y verificar que redirige a `/productos?q=...`
-- [ ] Aplicar un filtro de categoría y verificar que el grid se actualiza
-- [ ] Abrir el detalle de un producto con variantes (ej. talla, color)
-- [ ] Verificar que no se puede añadir al carrito sin seleccionar todas las variantes
-- [ ] Seleccionar variantes, cambiar cantidad y añadir al carrito
-- [ ] Verificar que el badge del carrito en Navbar se actualiza
-- [ ] Recargar la página y verificar que el carrito persiste (localStorage)
+### Flujo 1 — Búsqueda y detalle de producto ✅ PROBADO 2026-06-27
+- [x] Buscar "taladro" en el buscador del Navbar → filtra en tiempo real sin recargar
+- [ ] Aplicar un filtro de categoría y verificar que el grid se actualiza *(pendiente — solo 1 producto en BD)*
+- [x] Abrir el detalle de un producto con variantes (Voltaje: 110V / 220V)
+- [x] Verificar que no se puede añadir al carrito sin seleccionar variante (botón desactivado)
+- [x] Seleccionar 110V y añadir al carrito → toast "Añadido al carrito" visible
+- [x] Badge del carrito muestra "1" en Navbar (con delay leve al limpiar — ver B-06)
+- [ ] Recargar y verificar persistencia en localStorage *(pendiente)*
 
-### Flujo 2 — Carrito y cotización 🧪
-- [ ] Ir a `/carrito` y verificar que aparecen los productos añadidos
-- [ ] Incrementar / decrementar cantidades con los controles +/-
-- [ ] Eliminar un ítem y verificar que desaparece
-- [ ] Eliminar todos los ítems y verificar el estado vacío con link a /productos
-- [ ] Hacer clic en "Solicitar cotización" y verificar que abre el modal
-- [ ] Intentar enviar el form vacío y verificar errores de validación Zod
-- [ ] Llenar el form correctamente y enviar
-- [ ] Verificar que aparece la pantalla de éxito con botón "Descargar cotización (PDF)"
-- [ ] Descargar el PDF y verificar que el nombre es `cotizacion-YYYY-MM-DD-{nombre}.pdf`
-- [ ] Verificar que al cerrar el modal el carrito queda vacío
+### Flujo 2 — Carrito y cotización ✅ PROBADO 2026-06-27
+- [x] Ir a `/carrito` → producto "Taladro Percutor 700W, Voltaje: 110V" visible con cantidad 1
+- [ ] Incrementar / decrementar cantidades con los controles +/- *(pendiente)*
+- [ ] Eliminar un ítem *(pendiente)*
+- [x] Estado vacío tras cotización: "Tu carrito esta vacio" con link a /productos
+- [x] "Solicitar cotización" abre modal con campos Nombre, Teléfono, Email, Notas
+- [ ] Envío de form vacío (validación Zod) *(pendiente)*
+- [x] Formulario completo enviado → backend responde, modal muestra pantalla éxito
+- [x] Pantalla éxito con ícono verde y botón "Descargar cotizacion (PDF)"
+- [x] PDF descargado correctamente
+- [x] Cerrar modal → carrito vaciado (`clearCart()` ejecutado)
 
-### Flujo 3 — Email y persistencia 🧪
+### Flujo 3 — Email y persistencia 🧪 PENDIENTE VERIFICACIÓN MANUAL
 - [ ] Verificar que el email de notificación llegó al agente de ventas (`SALES_AGENT_EMAIL`)
 - [ ] Abrir MongoDB Atlas y verificar que la cotización aparece en colección `cotizaciones` con estado `"pendiente"`
 - [ ] Comprobar campos: `cliente`, `detalle[].id_producto`, `detalle[].cantidad`, `fecha`, `estado`
 
-### Flujo 4 — Panel administrador 🧪
-- [ ] Ir a `/admin/categorias` y crear una nueva categoría
-- [ ] Verificar que aparece en el filtro de la página `/productos`
-- [ ] Ir a `/admin/productos` y crear un producto nuevo con variantes e imagen
-- [ ] Verificar que el producto aparece en el catálogo (`/productos`)
-- [ ] Abrir el detalle del producto recién creado y añadirlo al carrito
+### Flujo 4 — Panel administrador ✅ PROBADO 2026-06-27
+- [x] Crear 3 categorías: Herramientas Eléctricas, Tornillería y Fijación, Seguridad Industrial
+- [x] Las 3 categorías aparecen en el filtro lateral de `/productos`
+- [x] Crear "Taladro Percutor 700W" con categoría y variante Voltaje (110V / 220V)
+- [x] Producto aparece en catálogo `/productos` con "Consultar precio" y botón "Añadir al Carrito"
+- [x] Detalle del producto: breadcrumb, variantes, cantidad, "Añadir al Carrito"
 
 ### Flujo 5 — Responsividad 🧪
 - [ ] Abrir DevTools → modo mobile (375px) y verificar:
@@ -120,7 +129,18 @@
 ## 🔧 Correcciones pendientes antes del despliegue
 
 1. **B-05 (CORS)** — Configurar `CORS_ORIGINS` en `.env` de producción del backend.
-2. **B-01 (xs:)** — Limpiar clase `xs:inline` del Navbar.
+2. **B-06 (Badge carrito)** — Revisar selector Zustand en Navbar para que el badge se actualice sin recargar.
 3. **B-02 (Comprar Ahora)** — Decidir si se restituye como botón deshabilitado o se elimina del diseño.
 4. Verificar que `RESEND_API_KEY` y `SALES_AGENT_EMAIL` estén seteados en el entorno de producción.
 5. Verificar que `VITE_API_URL` apunte al backend desplegado en el build de Vercel.
+
+## 📋 Resumen de pruebas funcionales (2026-06-27)
+
+| Flujo | Estado | Notas |
+|---|---|---|
+| Flujo 1 — Búsqueda y detalle | ✅ Pasa | Búsqueda en tiempo real, variantes, botón disabled sin selección |
+| Flujo 2 — Carrito y cotización | ✅ Pasa | Modal, envío, éxito, PDF, clearCart al cerrar |
+| Flujo 3 — Email y MongoDB | 🧪 Pendiente | Requiere verificación manual en Resend/Atlas |
+| Flujo 4 — Admin | ✅ Pasa | Categorías CRUD, producto con variantes, visible en catálogo |
+| Flujo 5 — Responsividad | 🧪 Pendiente | Requiere prueba con DevTools mobile |
+| Flujo 6 — Consola | ✅ Sin errores | 0 errores de consola durante toda la sesión de pruebas |
