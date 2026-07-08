@@ -18,10 +18,12 @@ export interface CotizacionPayload {
   }[]
 }
 
+export type EstadoCotizacion = 'pendiente' | 'contactado' | 'cerrada' | 'perdida'
+
 export interface CotizacionResponse {
   id: string
   fecha: string
-  estado: 'pendiente' | 'atendida'
+  estado: EstadoCotizacion
   cliente: ClienteData
   detalle: {
     id_producto: string
@@ -46,5 +48,20 @@ export function buildPayload(cliente: ClienteData, items: CartItem[]): Cotizacio
 
 export async function enviarCotizacion(payload: CotizacionPayload): Promise<CotizacionResponse> {
   const { data } = await client.post<CotizacionResponse>('/cotizaciones/', payload)
+  return data
+}
+
+// ── Admin ──────────────────────────────────────────────────────────────────
+
+export async function listarCotizaciones(): Promise<CotizacionResponse[]> {
+  const { data } = await client.get<CotizacionResponse[]>('/cotizaciones/')
+  return data
+}
+
+export async function actualizarEstado(
+  id: string,
+  estado: EstadoCotizacion
+): Promise<CotizacionResponse> {
+  const { data } = await client.patch<CotizacionResponse>(`/cotizaciones/${id}`, { estado })
   return data
 }
