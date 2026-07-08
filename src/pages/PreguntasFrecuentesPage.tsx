@@ -23,14 +23,19 @@ const SECCIONES: Seccion[] = [
     titulo: 'Pedidos y Cotizaciones',
     items: [
       {
-        pregunta: '¿Cómo puedo hacer un pedido?',
+        pregunta: '¿Cómo puedo solicitar una cotización?',
         respuesta:
-          'Puedes agregar los productos al carrito y solicitar una cotización directamente desde la página. Un agente de ventas se pondrá en contacto contigo para confirmar disponibilidad y coordinar el pago y entrega.',
+          'Agrega los productos que te interesan al carrito y envía tu solicitud. Un agente de ventas se pondrá en contacto contigo para darte los detalles de disponibilidad y coordinar todo directamente.',
       },
       {
         pregunta: '¿Cuánto tiempo tarda en llegar mi cotización?',
         respuesta:
           'Nuestro equipo responde cotizaciones en un plazo máximo de 24 horas hábiles. Si necesitas atención urgente, puedes contactarnos directamente por WhatsApp.',
+      },
+      {
+        pregunta: '¿La cotización tiene algún costo?',
+        respuesta:
+          'No. Solicitar una cotización es completamente gratuito y no te compromete a ninguna compra.',
       },
       {
         pregunta: '¿Puedo pedir productos que no están en el catálogo?',
@@ -40,67 +45,7 @@ const SECCIONES: Seccion[] = [
       {
         pregunta: '¿Qué significa "Bajo pedido"?',
         respuesta:
-          'Los productos marcados como "Bajo pedido" no están en existencia inmediata. Se consiguen bajo solicitud y el tiempo de entrega puede variar entre 3 y 10 días hábiles dependiendo del proveedor.',
-      },
-    ],
-  },
-  {
-    titulo: 'Pagos',
-    items: [
-      {
-        pregunta: '¿Qué métodos de pago aceptan?',
-        respuesta:
-          'Aceptamos transferencia bancaria, depósito, pago en efectivo y tarjeta de crédito/débito. Los métodos específicos se confirman al momento de la cotización.',
-      },
-      {
-        pregunta: '¿Puedo pagar a meses sin intereses?',
-        respuesta:
-          'Sí, contamos con opciones de pago a meses en compras elegibles. Consulta disponibilidad al momento de confirmar tu pedido.',
-      },
-      {
-        pregunta: '¿Requieren anticipo?',
-        respuesta:
-          'Para pedidos de productos "Bajo pedido" o pedidos grandes, solicitamos un anticipo del 50%. El saldo restante se liquida antes de la entrega.',
-      },
-    ],
-  },
-  {
-    titulo: 'Envíos y Entregas',
-    items: [
-      {
-        pregunta: '¿Hacen entregas a domicilio?',
-        respuesta:
-          'Sí, realizamos entregas en la zona metropolitana. Para entregas fuera de nuestra área de cobertura, coordinamos con paquetería. El costo de envío se calcula en la cotización.',
-      },
-      {
-        pregunta: '¿Cuánto tarda la entrega?',
-        respuesta:
-          'Los productos en existencia se entregan en 1 a 3 días hábiles dentro del área metropolitana. Pedidos foráneos o productos bajo pedido pueden tardar más.',
-      },
-      {
-        pregunta: '¿Puedo recoger mi pedido en tienda?',
-        respuesta:
-          'Sí. Al confirmar tu cotización puedes indicar que prefieres pasar a recoger y te avisamos cuando esté listo.',
-      },
-    ],
-  },
-  {
-    titulo: 'Devoluciones y Garantías',
-    items: [
-      {
-        pregunta: '¿Cuál es la política de devoluciones?',
-        respuesta:
-          'Aceptamos devoluciones dentro de los 15 días naturales a partir de la compra, siempre que el producto esté en su empaque original y sin uso. Algunos productos por su naturaleza no son elegibles para devolución (cortes especiales, productos personalizados).',
-      },
-      {
-        pregunta: '¿Los productos tienen garantía?',
-        respuesta:
-          'Sí. Las herramientas eléctricas y equipos cuentan con garantía del fabricante. La duración varía por producto y marca, generalmente de 6 meses a 2 años.',
-      },
-      {
-        pregunta: '¿Qué hago si llega un producto dañado?',
-        respuesta:
-          'Contáctanos dentro de las primeras 48 horas de recibir el pedido con fotos del daño. Gestionamos el cambio o reembolso sin costo adicional para ti.',
+          'Los productos marcados como "Bajo pedido" no están en existencia inmediata. Se consiguen bajo solicitud; el agente de ventas te confirma el tiempo de entrega estimado al momento de la cotización.',
       },
     ],
   },
@@ -173,7 +118,7 @@ export default function PreguntasFrecuentesPage() {
       <section className="bg-primary py-14 text-center text-primary-foreground">
         <h1 className="text-4xl font-black">Preguntas Frecuentes</h1>
         <p className="mt-3 text-sm text-primary-foreground/70 max-w-md mx-auto">
-          Encuentra respuestas a las dudas más comunes sobre pedidos, pagos, envíos y más.
+          Encuentra respuestas a las dudas más comunes sobre el catálogo, cotizaciones y la plataforma.
         </p>
       </section>
 
