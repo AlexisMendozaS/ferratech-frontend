@@ -2,7 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import HomePage from '@/pages/HomePage'
+import LoginPage from '@/pages/LoginPage'
 import ProductosPage from '@/pages/ProductosPage'
 import ProductoDetallePage from '@/pages/ProductoDetallePage'
 import CarritoPage from '@/pages/CarritoPage'
@@ -22,12 +24,17 @@ export default function App() {
           <Route path="/carrito" element={<CarritoPage />} />
         </Route>
 
-        {/* Rutas admin */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="productos" element={<ProductosAdminPage />} />
-          <Route path="productos/nuevo" element={<ProductoFormPage />} />
-          <Route path="productos/:id/editar" element={<ProductoFormPage />} />
-          <Route path="categorias" element={<CategoriasAdminPage />} />
+        {/* Login */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Rutas admin — protegidas con JWT */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="productos" element={<ProductosAdminPage />} />
+            <Route path="productos/nuevo" element={<ProductoFormPage />} />
+            <Route path="productos/:id/editar" element={<ProductoFormPage />} />
+            <Route path="categorias" element={<CategoriasAdminPage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

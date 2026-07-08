@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   LayoutDashboard,
+  LogOut,
   Menu,
   Package,
   PackagePlus,
@@ -10,6 +11,7 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
+import { useAuthStore } from '@/stores/authStore'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -43,6 +45,14 @@ const NAV_ITEMS = [
 ]
 
 function SidebarContent({ onNav }: { onNav?: () => void }) {
+  const clearToken = useAuthStore((s) => s.clearToken)
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    clearToken()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
@@ -86,8 +96,8 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 
       <Separator className="bg-white/10" />
 
-      {/* Volver a la tienda */}
-      <div className="p-3">
+      {/* Footer sidebar: tienda + logout */}
+      <div className="p-3 space-y-0.5">
         <Link
           to="/"
           className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/50 hover:bg-white/10 hover:text-primary-foreground transition-colors"
@@ -95,6 +105,13 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
           <ArrowLeft className="size-4 shrink-0" />
           Ir a la tienda
         </Link>
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/50 hover:bg-white/10 hover:text-primary-foreground transition-colors"
+        >
+          <LogOut className="size-4 shrink-0" />
+          Cerrar sesión
+        </button>
       </div>
     </div>
   )
