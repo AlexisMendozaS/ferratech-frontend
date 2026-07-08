@@ -9,6 +9,7 @@ import ProductosPage from '@/pages/ProductosPage'
 import ProductoDetallePage from '@/pages/ProductoDetallePage'
 import CarritoPage from '@/pages/CarritoPage'
 import CategoriasPage from '@/pages/CategoriasPage'
+import CategoriaPage from '@/pages/CategoriaPage'
 import ProductoFormPage from '@/pages/admin/ProductoFormPage'
 import ProductosAdminPage from '@/pages/admin/ProductosAdminPage'
 import CategoriasAdminPage from '@/pages/admin/CategoriasAdminPage'
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/producto/:id" element={<ProductoDetallePage />} />
           <Route path="/carrito" element={<CarritoPage />} />
           <Route path="/categorias" element={<CategoriasPage />} />
+          <Route path="/categorias/:id" element={<CategoriaPage />} />
         </Route>
 
         {/* Login */}

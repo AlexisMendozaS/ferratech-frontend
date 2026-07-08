@@ -55,7 +55,7 @@ function CategoriaCard({ categoria }: { categoria: Categoria }) {
           size="sm"
           className="mt-auto bg-accent hover:bg-accent/90 text-accent-foreground"
         >
-          <Link to={`/productos?categoria=${categoria.id}`}>Mostrar Productos</Link>
+          <Link to={`/categorias/${categoria.id}`}>Mostrar Productos</Link>
         </Button>
       </div>
     </article>

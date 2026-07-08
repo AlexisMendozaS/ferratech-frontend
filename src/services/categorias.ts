@@ -11,6 +11,9 @@ export const categoriasService = {
   listar: () =>
     client.get<Categoria[]>('/categorias/').then((r) => r.data),
 
+  obtener: (id: string) =>
+    client.get<Categoria>(`/categorias/${id}`).then((r) => r.data),
+
   crear: (data: CategoriaPayload) =>
     client.post<Categoria>('/categorias/', data).then((r) => r.data),
 
