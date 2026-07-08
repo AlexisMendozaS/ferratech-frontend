@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, MessageCircle } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Seo } from '@/components/seo/Seo'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Contenido
@@ -114,6 +115,10 @@ export default function PreguntasFrecuentesPage() {
 
   return (
     <div>
+      <Seo
+        title="Preguntas Frecuentes"
+        description="Resuelve tus dudas sobre el catálogo FerraTech, cómo solicitar cotizaciones y el uso de la plataforma."
+      />
       {/* Hero */}
       <section className="bg-primary py-14 text-center text-primary-foreground">
         <h1 className="text-4xl font-black">Preguntas Frecuentes</h1>

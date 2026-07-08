@@ -5,6 +5,8 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard, ProductCardSkeleton } from '@/components/productos/ProductCard'
+import { Seo } from '@/components/seo/Seo'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { productosService } from '@/services/productos'
 import { categoriasService } from '@/services/categorias'
 import type { Producto } from '@/types/producto'
@@ -338,6 +340,25 @@ export default function HomePage() {
 
   return (
     <div>
+      <Seo
+        description="FerraTech — Herramientas eléctricas, manuales y materiales de construcción. Consulta nuestro catálogo y solicita tu cotización en línea."
+        canonical="https://ferratech.com.mx/"
+      />
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'HardwareStore',
+          name: 'FerraTech',
+          url: 'https://ferratech.com.mx',
+          description:
+            'Catálogo de herramientas eléctricas, manuales y materiales de construcción. Solicita tu cotización en línea.',
+          contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'sales',
+            availableLanguage: 'Spanish',
+          },
+        }}
+      />
       <HeroCarousel />
       <FeaturedCategoriasSection categorias={categorias} loading={loadingCats} />
       <OfertasSection productos={productos} loading={loadingProds} />

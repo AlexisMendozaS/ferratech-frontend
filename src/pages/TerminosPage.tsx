@@ -1,3 +1,5 @@
+import { Seo } from '@/components/seo/Seo'
+
 const LAST_UPDATED = '7 de julio de 2026'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -14,6 +16,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function TerminosPage() {
   return (
     <div>
+      <Seo
+        title="Términos de Uso"
+        description="Términos de uso de FerraTech. Conoce las condiciones de uso del catálogo, cotizaciones y la plataforma."
+        noindex
+      />
       {/* Hero */}
       <section className="bg-primary py-12 text-center text-primary-foreground">
         <h1 className="text-3xl font-black">Términos de Uso</h1>

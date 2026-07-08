@@ -1,3 +1,5 @@
+import { Seo } from '@/components/seo/Seo'
+
 const AGENT_EMAIL = 'armandomendoza988@gmail.com'
 const LAST_UPDATED = '7 de julio de 2026'
 
@@ -15,6 +17,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function AvisoPrivacidadPage() {
   return (
     <div>
+      <Seo
+        title="Aviso de Privacidad"
+        description="Aviso de privacidad de FerraTech conforme a la LFPDPPP. Conoce cómo tratamos tus datos personales y cómo ejercer tus derechos ARCO."
+        noindex
+      />
       {/* Hero */}
       <section className="bg-primary py-12 text-center text-primary-foreground">
         <h1 className="text-3xl font-black">Aviso de Privacidad</h1>

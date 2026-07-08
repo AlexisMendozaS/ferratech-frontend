@@ -13,6 +13,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { ProductCard, ProductCardSkeleton } from '@/components/productos/ProductCard'
+import { Seo } from '@/components/seo/Seo'
 import { productosService } from '@/services/productos'
 import { categoriasService } from '@/services/categorias'
 import type { Categoria } from '@/types/categoria'
@@ -248,6 +249,10 @@ export default function ProductosPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <Seo
+        title="Productos"
+        description="Explora nuestro catálogo de herramientas eléctricas, manuales, materiales de construcción y más. Solicita tu cotización sin costo."
+      />
       {/* Breadcrumb / header */}
       <div className="mb-4 flex items-center justify-between gap-2">
         <div>

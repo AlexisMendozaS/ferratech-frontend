@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard, ProductCardSkeleton } from '@/components/productos/ProductCard'
+import { Seo } from '@/components/seo/Seo'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { categoriasService } from '@/services/categorias'
 import { productosService } from '@/services/productos'
 import type { Categoria } from '@/types/categoria'
@@ -70,6 +72,28 @@ export default function CategoriaPage() {
 
   return (
     <div>
+      <Seo
+        title={categoria?.nombre}
+        description={
+          categoria?.descripcion
+            ? `${categoria.descripcion} — Explora los productos de FerraTech en esta categoría.`
+            : `Productos de ${categoria?.nombre ?? 'esta categoría'} en FerraTech. Solicita tu cotización en línea.`
+        }
+        image={categoria?.imagen ?? undefined}
+      />
+      {categoria && (
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://ferratech.com.mx/' },
+              { '@type': 'ListItem', position: 2, name: 'Categorías', item: 'https://ferratech.com.mx/categorias' },
+              { '@type': 'ListItem', position: 3, name: categoria.nombre, item: `https://ferratech.com.mx/categorias/${categoria.id}` },
+            ],
+          }}
+        />
+      )}
       {/* ── Hero banner ── */}
       <section className="relative overflow-hidden bg-primary h-48 sm:h-64">
         {categoria?.imagen && (

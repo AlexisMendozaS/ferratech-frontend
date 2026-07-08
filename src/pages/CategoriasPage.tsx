@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Seo } from '@/components/seo/Seo'
 import { categoriasService } from '@/services/categorias'
 import type { Categoria } from '@/types/categoria'
 
@@ -76,6 +77,10 @@ export default function CategoriasPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
+      <Seo
+        title="Categorías"
+        description="Explora todas las categorías de FerraTech: herramientas eléctricas, manuales, materiales de construcción, plomería, electricidad y más."
+      />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <h1 className="mb-8 text-4xl font-black text-foreground">Categorías</h1>
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { ModalCotizacion } from '@/components/cotizacion/ModalCotizacion'
+import { Seo } from '@/components/seo/Seo'
 import { useCarritoStore } from '@/store/carritoStore'
 
 export default function CarritoPage() {
@@ -34,6 +35,7 @@ export default function CarritoPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
+      <Seo title="Carrito de Cotización" noindex />
       <h1 className="mb-6 text-2xl font-bold">
         Carrito{' '}
         <Badge variant="secondary" className="ml-2 text-sm">

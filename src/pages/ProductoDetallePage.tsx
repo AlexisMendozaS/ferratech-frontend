@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard, ProductCardSkeleton } from '@/components/productos/ProductCard'
+import { Seo } from '@/components/seo/Seo'
+import { JsonLd } from '@/components/seo/JsonLd'
 import { productosService } from '@/services/productos'
 import { categoriasService } from '@/services/categorias'
 import type { Producto } from '@/types/producto'
@@ -202,6 +204,36 @@ export default function ProductoDetallePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 pb-24 sm:px-6 sm:pb-8">
+      <Seo
+        title={producto.nombre}
+        description={
+          producto.descripcion
+            ? producto.descripcion.slice(0, 155)
+            : `${producto.nombre} — Disponible en FerraTech. Solicita tu cotización en línea.`
+        }
+        image={producto.imagen_principal ?? undefined}
+      />
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: producto.nombre,
+          description: producto.descripcion ?? undefined,
+          image: producto.imagen_principal ?? undefined,
+          sku: producto.id,
+          brand: { '@type': 'Brand', name: producto.marca ?? 'FerraTech' },
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: 'MXN',
+            price: producto.precio,
+            availability:
+              producto.stock > 0
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+            seller: { '@type': 'Organization', name: 'FerraTech' },
+          },
+        }}
+      />
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1 text-sm text-muted-foreground" aria-label="Ruta">
         <Link to="/" className="hover:text-foreground transition-colors">Inicio</Link>
