@@ -11,6 +11,8 @@ import CarritoPage from '@/pages/CarritoPage'
 import CategoriasPage from '@/pages/CategoriasPage'
 import CategoriaPage from '@/pages/CategoriaPage'
 import PreguntasFrecuentesPage from '@/pages/PreguntasFrecuentesPage'
+import AvisoPrivacidadPage from '@/pages/AvisoPrivacidadPage'
+import TerminosPage from '@/pages/TerminosPage'
 import ProductoFormPage from '@/pages/admin/ProductoFormPage'
 import ProductosAdminPage from '@/pages/admin/ProductosAdminPage'
 import CategoriasAdminPage from '@/pages/admin/CategoriasAdminPage'
@@ -28,6 +30,8 @@ export default function App() {
           <Route path="/categorias" element={<CategoriasPage />} />
           <Route path="/categorias/:id" element={<CategoriaPage />} />
           <Route path="/preguntas-frecuentes" element={<PreguntasFrecuentesPage />} />
+          <Route path="/privacidad" element={<AvisoPrivacidadPage />} />
+          <Route path="/terminos" element={<TerminosPage />} />
         </Route>
 
         {/* Login */}

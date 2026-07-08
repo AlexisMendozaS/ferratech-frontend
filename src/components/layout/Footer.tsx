@@ -141,13 +141,13 @@ export function Footer() {
 
         {/* Barra inferior */}
         <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-white/10 pt-6 text-xs text-primary-foreground/50 sm:flex-row">
-          <span>© {new Date().getFullYear()} FerraTech. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} FerraTech. Todos los derechos reservados.</span>
           <div className="flex items-center gap-4">
-            <Link to="/" className="hover:text-primary-foreground/80 transition-colors">
-              Términos de Servicio
+            <Link to="/terminos" className="hover:text-primary-foreground/80 transition-colors">
+              Términos de Uso
             </Link>
-            <Link to="/" className="hover:text-primary-foreground/80 transition-colors">
-              Política de Privacidad
+            <Link to="/privacidad" className="hover:text-primary-foreground/80 transition-colors">
+              Aviso de Privacidad
             </Link>
           </div>
         </div>
