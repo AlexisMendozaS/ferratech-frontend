@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Bell, Menu, Search, ShoppingCart, User, Wrench } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -12,20 +12,23 @@ import {
 import { useCarritoStore } from '@/store/carritoStore'
 
 const NAV_LINKS = [
-  { label: 'Inicio', href: '/' },
-  { label: 'Productos', href: '/productos' },
-  { label: 'Categorías', href: '/productos' },
-  { label: 'Ofertas', href: '/productos?oferta=true' },
-  { label: 'Preguntas Frecuentes', href: '/faq' },
+  { label: 'Inicio',               href: '/',                    end: true,  ofertaOnly: false },
+  { label: 'Productos',            href: '/productos',           end: true,  ofertaOnly: false },
+  { label: 'Categorías',           href: '/categorias',          end: false, ofertaOnly: false },
+  { label: 'Ofertas',              href: '/productos?oferta=true', end: true, ofertaOnly: true  },
+  { label: 'Preguntas Frecuentes', href: '/preguntas-frecuentes', end: true, ofertaOnly: false },
 ]
 
 export function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const totalItems = useCarritoStore((s) => s.totalItems)
-  const cartCount = totalItems()
+  // Selector reactivo: se actualiza cuando items cambia (incluye clearCart)
+  const cartCount = useCarritoStore((s) =>
+    s.items.reduce((sum, i) => sum + i.cantidad, 0)
+  )
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -125,17 +128,21 @@ export function Navbar() {
       <nav className="hidden sm:block border-t border-white/10">
         <ul className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 sm:px-6 scrollbar-none">
           {NAV_LINKS.map((link) => (
-            <li key={link.href + link.label} className="shrink-0">
+            <li key={link.label} className="shrink-0">
               <NavLink
                 to={link.href}
-                end={link.href === '/'}
-                className={({ isActive }) =>
-                  `block px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
-                    isActive
+                end={link.end}
+                className={({ isActive }) => {
+                  // Ofertas solo se activa si también está el query param oferta=true
+                  const active = link.ofertaOnly
+                    ? isActive && new URLSearchParams(location.search).get('oferta') === 'true'
+                    : isActive
+                  return `block px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
+                    active
                       ? 'text-accent border-b-2 border-accent'
                       : 'text-primary-foreground/80 hover:text-primary-foreground'
                   }`
-                }
+                }}
               >
                 {link.label}
               </NavLink>
@@ -157,18 +164,21 @@ export function Navbar() {
           <nav className="flex-1 overflow-y-auto py-4">
             <ul className="flex flex-col">
               {NAV_LINKS.map((link) => (
-                <li key={link.href + link.label}>
+                <li key={link.label}>
                   <NavLink
                     to={link.href}
-                    end={link.href === '/'}
+                    end={link.end}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center px-5 py-3 text-sm font-medium transition-colors border-l-2 ${
-                        isActive
+                    className={({ isActive }) => {
+                      const active = link.ofertaOnly
+                        ? isActive && new URLSearchParams(location.search).get('oferta') === 'true'
+                        : isActive
+                      return `flex items-center px-5 py-3 text-sm font-medium transition-colors border-l-2 ${
+                        active
                           ? 'border-primary text-primary bg-primary/5'
                           : 'border-transparent text-foreground hover:bg-muted hover:border-muted-foreground/30'
                       }`
-                    }
+                    }}
                   >
                     {link.label}
                   </NavLink>
