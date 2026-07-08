@@ -16,6 +16,9 @@ import TerminosPage from '@/pages/TerminosPage'
 import ProductoFormPage from '@/pages/admin/ProductoFormPage'
 import ProductosAdminPage from '@/pages/admin/ProductosAdminPage'
 import CategoriasAdminPage from '@/pages/admin/CategoriasAdminPage'
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
+import AdminCotizacionesPage from '@/pages/admin/AdminCotizacionesPage'
+import AdminLeadsPage from '@/pages/admin/AdminLeadsPage'
 
 export default function App() {
   return (
@@ -40,6 +43,10 @@ export default function App() {
         {/* Rutas admin — protegidas con JWT */}
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="cotizaciones" element={<AdminCotizacionesPage />} />
+            <Route path="leads" element={<AdminLeadsPage />} />
             <Route path="productos" element={<ProductosAdminPage />} />
             <Route path="productos/nuevo" element={<ProductoFormPage />} />
             <Route path="productos/:id/editar" element={<ProductoFormPage />} />

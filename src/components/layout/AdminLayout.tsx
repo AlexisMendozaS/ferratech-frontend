@@ -2,51 +2,96 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
+  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
   Package,
-  PackagePlus,
   Tag,
+  Users,
   Wrench,
   X,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { useAdminStats } from '@/hooks/useAdminStats'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Toaster } from 'sonner'
 
-const NAV_ITEMS = [
+// ─────────────────────────────────────────────────────────────────────────────
+// Nav structure
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface NavItem {
+  label: string
+  href: string
+  icon: React.ElementType
+  end: boolean
+  badgeKey?: 'cotizaciones_pendientes' | 'leads_nuevos'
+}
+
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
+const NAV_SECTIONS: NavSection[] = [
   {
-    label: 'Dashboard',
-    href: '/admin',
-    icon: LayoutDashboard,
-    end: true,
+    title: 'General',
+    items: [
+      { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, end: true },
+    ],
   },
   {
-    label: 'Productos',
-    href: '/admin/productos',
-    icon: Package,
-    end: false,
+    title: 'Operaciones',
+    items: [
+      {
+        label: 'Cotizaciones',
+        href: '/admin/cotizaciones',
+        icon: FileText,
+        end: false,
+        badgeKey: 'cotizaciones_pendientes',
+      },
+      {
+        label: 'Leads',
+        href: '/admin/leads',
+        icon: Users,
+        end: false,
+        badgeKey: 'leads_nuevos',
+      },
+    ],
   },
   {
-    label: 'Nuevo Producto',
-    href: '/admin/productos/nuevo',
-    icon: PackagePlus,
-    end: true,
-  },
-  {
-    label: 'Categorías',
-    href: '/admin/categorias',
-    icon: Tag,
-    end: true,
+    title: 'Catálogo',
+    items: [
+      { label: 'Productos', href: '/admin/productos', icon: Package, end: false },
+      { label: 'Categorías', href: '/admin/categorias', icon: Tag, end: true },
+    ],
   },
 ]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Badge
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Badge({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="ml-auto rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold leading-none text-accent-foreground">
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sidebar content
+// ─────────────────────────────────────────────────────────────────────────────
 
 function SidebarContent({ onNav }: { onNav?: () => void }) {
   const clearToken = useAuthStore((s) => s.clearToken)
   const navigate = useNavigate()
+  const stats = useAdminStats()
 
   const handleLogout = () => {
     clearToken()
@@ -66,37 +111,47 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 
       <Separator className="bg-white/10" />
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto p-3">
-        <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/40">
-          Gestión
-        </p>
-        <ul className="space-y-0.5">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.href}>
-              <NavLink
-                to={item.href}
-                end={item.end}
-                onClick={onNav}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-accent/20 text-accent'
-                      : 'text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground'
-                  }`
-                }
-              >
-                <item.icon className="size-4 shrink-0" />
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+      {/* Nav por secciones */}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-4">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.title}>
+            <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/40">
+              {section.title}
+            </p>
+            <ul className="space-y-0.5">
+              {section.items.map((item) => {
+                const badgeCount =
+                  item.badgeKey && stats ? stats[item.badgeKey] : 0
+
+                return (
+                  <li key={item.href}>
+                    <NavLink
+                      to={item.href}
+                      end={item.end}
+                      onClick={onNav}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-accent/20 text-accent'
+                            : 'text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground'
+                        }`
+                      }
+                    >
+                      <item.icon className="size-4 shrink-0" />
+                      {item.label}
+                      <Badge count={badgeCount} />
+                    </NavLink>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <Separator className="bg-white/10" />
 
-      {/* Footer sidebar: tienda + logout */}
+      {/* Footer: ir a tienda + logout */}
       <div className="p-3 space-y-0.5">
         <Link
           to="/"
@@ -117,17 +172,21 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* ── Sidebar desktop ────────────────────── */}
+      {/* Sidebar desktop */}
       <aside className="hidden w-56 shrink-0 flex-col bg-primary lg:flex">
         <SidebarContent />
       </aside>
 
-      {/* ── Sidebar mobile overlay ─────────────── */}
+      {/* Sidebar mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
@@ -147,7 +206,7 @@ export function AdminLayout() {
         </div>
       )}
 
-      {/* ── Contenido principal ────────────────── */}
+      {/* Contenido principal */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Topbar mobile */}
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-4 lg:hidden">
