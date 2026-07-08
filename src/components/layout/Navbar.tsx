@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Menu, Search, ShoppingCart, User, Wrench } from 'lucide-react'
+import { Bell, Menu, Search, ShoppingCart, User, Wrench, LayoutDashboard } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -10,6 +10,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { useCarritoStore } from '@/store/carritoStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const NAV_LINKS = [
   { label: 'Inicio',               href: '/',                    end: true,  ofertaOnly: false },
@@ -29,6 +30,7 @@ export function Navbar() {
   const cartCount = useCarritoStore((s) =>
     s.items.reduce((sum, i) => sum + i.cantidad, 0)
   )
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -110,17 +112,30 @@ export function Navbar() {
             </Link>
           </Button>
 
-          {/* Iniciar Sesión — oculto en móvil */}
-          <Button
-            asChild
-            variant="ghost"
-            className="hidden sm:flex items-center gap-1.5 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground px-2"
-          >
-            <Link to="/login">
-              <User className="size-4" />
-              <span className="text-xs font-medium">Iniciar Sesión</span>
-            </Link>
-          </Button>
+          {/* Admin o Iniciar Sesión — oculto en móvil */}
+          {isAuthenticated() ? (
+            <Button
+              asChild
+              variant="ghost"
+              className="hidden sm:flex items-center gap-1.5 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground px-2"
+            >
+              <Link to="/admin/productos">
+                <LayoutDashboard className="size-4" />
+                <span className="text-xs font-medium">Admin</span>
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              asChild
+              variant="ghost"
+              className="hidden sm:flex items-center gap-1.5 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground px-2"
+            >
+              <Link to="/login">
+                <User className="size-4" />
+                <span className="text-xs font-medium">Iniciar Sesión</span>
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -188,12 +203,21 @@ export function Navbar() {
           </nav>
 
           <div className="border-t p-4">
-            <Button asChild variant="outline" className="w-full gap-2" size="sm">
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                <User className="size-4" />
-                Iniciar Sesión
-              </Link>
-            </Button>
+            {isAuthenticated() ? (
+              <Button asChild variant="outline" className="w-full gap-2" size="sm">
+                <Link to="/admin/productos" onClick={() => setMobileMenuOpen(false)}>
+                  <LayoutDashboard className="size-4" />
+                  Panel Admin
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline" className="w-full gap-2" size="sm">
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <User className="size-4" />
+                  Iniciar Sesión
+                </Link>
+              </Button>
+            )}
           </div>
         </SheetContent>
       </Sheet>
