@@ -1,11 +1,17 @@
 import client from '@/api/client'
 
+export interface AtributoSugerido {
+  nombre: string
+  opciones: string[]
+}
+
 export interface ProductoExtraido {
   nombre: string
   descripcion_sugerida: string | null
   categoria_id_sugerida: string | null
   categoria_nombre: string | null
   confianza: number
+  atributos_sugeridos: AtributoSugerido[]
 }
 
 export interface ResultadoExtraccion {
@@ -27,8 +33,15 @@ export async function extraerProductosDePdf(
   return data
 }
 
+export interface ProductoBatch {
+  nombre: string
+  descripcion: string
+  categorias: string[]
+  atributos: AtributoSugerido[]
+}
+
 export async function importarProductosBatch(
-  productos: { nombre: string; descripcion: string; categorias: string[] }[]
+  productos: ProductoBatch[]
 ): Promise<void> {
   await client.post('/productos/batch', productos)
 }

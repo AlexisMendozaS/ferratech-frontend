@@ -317,6 +317,7 @@ function PasoRevision({
               <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Nombre</th>
               <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Descripción</th>
               <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Categoría</th>
+              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Atributos</th>
               <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Confianza</th>
               <th className="w-10 px-3 py-2.5" />
             </tr>
@@ -361,6 +362,23 @@ function PasoRevision({
                       <option key={c.id} value={c.id}>{c.nombre}</option>
                     ))}
                   </select>
+                </td>
+                <td className="px-3 py-2">
+                  {prod.atributos_sugeridos.length > 0 ? (
+                    <div className="space-y-0.5">
+                      {prod.atributos_sugeridos.map((a) => (
+                        <span
+                          key={a.nombre}
+                          className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700"
+                          title={a.opciones.join(', ')}
+                        >
+                          {a.nombre} · {a.opciones.length}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   <ConfianzaBadge valor={prod.confianza} />
@@ -539,6 +557,7 @@ export default function AdminImportarPage() {
           nombre: p.nombre_editado || p.nombre,
           descripcion: p.descripcion_editada || p.nombre_editado || p.nombre,
           categorias: p.categoria_id ? [p.categoria_id] : [],
+          atributos: p.atributos_sugeridos,
         }))
       )
       setCantidadImportada(seleccionados.length)
