@@ -160,3 +160,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright (salidas de las pruebas E2E)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
