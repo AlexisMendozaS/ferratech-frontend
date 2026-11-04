@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Filter, X } from 'lucide-react'
 
@@ -17,7 +17,7 @@ import { Seo } from '@/components/seo/Seo'
 import { productosService } from '@/services/productos'
 import { categoriasService } from '@/services/categorias'
 import type { Categoria } from '@/types/categoria'
-import type { PaginatedProductoResponse } from '@/types/producto'
+import { useAsyncData } from '@/hooks/useAsyncData'
 
 const LIMIT = 12
 
@@ -118,51 +118,41 @@ export default function ProductosPage() {
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
 
   const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [resultado, setResultado] = useState<PaginatedProductoResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
 
   // Temp state for sidebar (committed on "Aplicar Filtros")
   const [categoriaTemp, setCategoriaTemp] = useState(categoriaParam)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const abortRef = useRef<AbortController | null>(null)
-
-  // Sync temp state when URL changes externally (e.g. Navbar search)
-  useEffect(() => {
+  // Sync temp state when URL changes externally (e.g. Navbar search).
+  // Ajuste durante el render (patrón recomendado por React), sin efecto.
+  const [categoriaParamAnterior, setCategoriaParamAnterior] = useState(categoriaParam)
+  if (categoriaParamAnterior !== categoriaParam) {
+    setCategoriaParamAnterior(categoriaParam)
     setCategoriaTemp(categoriaParam)
-  }, [categoriaParam])
+  }
 
   // Load categories once
   useEffect(() => {
     categoriasService.listar().then(setCategorias).catch(() => {})
   }, [])
 
-  // Fetch products whenever URL params change
-  const fetchProductos = useCallback(async () => {
-    abortRef.current?.abort()
-    abortRef.current = new AbortController()
-
-    setLoading(true)
-    setError(false)
-    try {
-      const data = await productosService.buscar({
+  // Fetch products whenever URL params change; `intento` permite reintentar tras un error
+  const [intento, setIntento] = useState(0)
+  const {
+    data: resultado,
+    loading,
+    error,
+  } = useAsyncData(
+    () =>
+      productosService.buscar({
         q: q || undefined,
         categoria: categoriaParam || undefined,
         page,
         limit: LIMIT,
-      })
-      setResultado(data)
-    } catch {
-      setError(true)
-    } finally {
-      setLoading(false)
-    }
-  }, [q, categoriaParam, page])
-
-  useEffect(() => {
-    fetchProductos()
-  }, [fetchProductos])
+      }),
+    `${q}|${categoriaParam}|${page}|${intento}`,
+  )
+  const reintentar = () => setIntento((n) => n + 1)
 
   const applyFilters = () => {
     const next = new URLSearchParams(searchParams)
@@ -324,7 +314,7 @@ export default function ProductosPage() {
           {error ? (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
               <p className="text-muted-foreground">Error al cargar productos.</p>
-              <Button variant="outline" onClick={fetchProductos}>Reintentar</Button>
+              <Button variant="outline" onClick={reintentar}>Reintentar</Button>
             </div>
           ) : loading ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

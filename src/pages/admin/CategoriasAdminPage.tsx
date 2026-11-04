@@ -67,10 +67,12 @@ interface CategoriaDialogProps {
   onSaved: (categoria: Categoria) => void
 }
 
+// El padre lo remonta con una `key` nueva cada vez que se abre, así el formulario
+// y la vista previa arrancan limpios sin sincronizarlos en un efecto.
 function CategoriaDialog({ open, categoria, onClose, onSaved }: CategoriaDialogProps) {
   const isEditing = !!categoria
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(categoria?.imagen ?? null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -82,20 +84,6 @@ function CategoriaDialog({ open, categoria, onClose, onSaved }: CategoriaDialogP
       imagen: categoria?.imagen ?? '',
     },
   })
-
-  // Sincronizar valores cuando cambia la categoría (modo edición)
-  useEffect(() => {
-    if (open) {
-      form.reset({
-        nombre: categoria?.nombre ?? '',
-        descripcion: categoria?.descripcion ?? '',
-        imagen: categoria?.imagen ?? '',
-      })
-      setImagePreview(categoria?.imagen ?? null)
-      setImageFile(null)
-      setSubmitError(null)
-    }
-  }, [open, categoria, form])
 
   const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -333,6 +321,7 @@ export default function CategoriasAdminPage() {
   // Dialog estado
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Categoria | undefined>()
+  const [dialogKey, setDialogKey] = useState(0)
 
   // Delete estado
   const [deleteTarget, setDeleteTarget] = useState<Categoria | null>(null)
@@ -375,11 +364,13 @@ export default function CategoriasAdminPage() {
 
   const openCreate = () => {
     setEditTarget(undefined)
+    setDialogKey((k) => k + 1)
     setDialogOpen(true)
   }
 
   const openEdit = (cat: Categoria) => {
     setEditTarget(cat)
+    setDialogKey((k) => k + 1)
     setDialogOpen(true)
   }
 
@@ -452,6 +443,7 @@ export default function CategoriasAdminPage() {
 
       {/* Dialog crear / editar */}
       <CategoriaDialog
+        key={dialogKey}
         open={dialogOpen}
         categoria={editTarget}
         onClose={() => {

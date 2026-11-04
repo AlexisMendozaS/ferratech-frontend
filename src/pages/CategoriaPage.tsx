@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -9,51 +9,33 @@ import { Seo } from '@/components/seo/Seo'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { categoriasService } from '@/services/categorias'
 import { productosService } from '@/services/productos'
-import type { Categoria } from '@/types/categoria'
-import type { PaginatedProductoResponse } from '@/types/producto'
+import { useAsyncData } from '@/hooks/useAsyncData'
 
 const LIMIT = 12
 
 export default function CategoriaPage() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
 
-  const [categoria, setCategoria] = useState<Categoria | null>(null)
-  const [loadingCat, setLoadingCat] = useState(true)
-  const [notFound, setNotFound] = useState(false)
-
-  const [result, setResult] = useState<PaginatedProductoResponse | null>(null)
+  // Al cambiar de categoría se vuelve a la página 1 (ajuste durante el render, sin efecto).
   const [page, setPage] = useState(1)
-  const [loadingProds, setLoadingProds] = useState(true)
+  const [idAnterior, setIdAnterior] = useState(id)
+  if (idAnterior !== id) {
+    setIdAnterior(id)
+    setPage(1)
+  }
 
-  // Fetch categoría
-  useEffect(() => {
-    if (!id) return
-    setLoadingCat(true)
-    categoriasService
-      .obtener(id)
-      .then(setCategoria)
-      .catch(() => setNotFound(true))
-      .finally(() => setLoadingCat(false))
-  }, [id])
+  const {
+    data: categoria,
+    loading: loadingCat,
+    error: errorCat,
+  } = useAsyncData(() => categoriasService.obtener(id!), `categoria:${id}`, !!id)
+  const notFound = !!errorCat
 
-  // Fetch productos paginados
-  const fetchProductos = useCallback(
-    (p: number) => {
-      if (!id) return
-      setLoadingProds(true)
-      productosService
-        .buscar({ categoria: id, page: p, limit: LIMIT })
-        .then(setResult)
-        .catch(console.error)
-        .finally(() => setLoadingProds(false))
-    },
-    [id]
+  const { data: result, loading: loadingProds } = useAsyncData(
+    () => productosService.buscar({ categoria: id, page, limit: LIMIT }),
+    `productos:${id}:${page}`,
+    !!id,
   )
-
-  useEffect(() => {
-    fetchProductos(page)
-  }, [fetchProductos, page])
 
   // Not found
   if (notFound) {
