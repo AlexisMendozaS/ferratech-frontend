@@ -221,17 +221,19 @@ export default function ProductoDetallePage() {
           description: producto.descripcion ?? undefined,
           image: producto.imagen_principal ?? undefined,
           sku: producto.id,
-          brand: { '@type': 'Brand', name: producto.marca ?? 'FerraTech' },
-          offers: {
-            '@type': 'Offer',
-            priceCurrency: 'MXN',
-            price: producto.precio,
-            availability:
-              producto.stock > 0
-                ? 'https://schema.org/InStock'
-                : 'https://schema.org/OutOfStock',
-            seller: { '@type': 'Organization', name: 'FerraTech' },
-          },
+          // Marca y precio llegan con el modelo ampliado (INI-003). Sin precio no se
+          // declara `offers`: Google marca como inválida una oferta sin `price`.
+          ...(producto.precio != null && {
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'MXN',
+              price: producto.precio,
+              availability: producto.bajo_pedido
+                ? 'https://schema.org/BackOrder'
+                : 'https://schema.org/InStock',
+              seller: { '@type': 'Organization', name: 'FerraTech' },
+            },
+          }),
         }}
       />
       {/* Breadcrumb */}
