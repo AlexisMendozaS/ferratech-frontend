@@ -12,9 +12,7 @@ const fmtFechaHora = (iso: string) =>
   }).format(new Date(iso))
 import { toast } from 'sonner'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   actualizarEstado,

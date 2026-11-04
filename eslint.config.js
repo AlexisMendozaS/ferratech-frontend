@@ -19,4 +19,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Componentes generados por shadcn: exportan sus variantes (buttonVariants,
+    // badgeVariants, useFormField) junto al componente, que es el patrón de shadcn.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
