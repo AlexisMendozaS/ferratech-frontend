@@ -19,7 +19,6 @@ import CategoriasAdminPage from '@/pages/admin/CategoriasAdminPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 import AdminCotizacionesPage from '@/pages/admin/AdminCotizacionesPage'
 import AdminLeadsPage from '@/pages/admin/AdminLeadsPage'
-import AdminImportarPage from '@/pages/admin/AdminImportarPage'
 
 export default function App() {
   return (
@@ -52,7 +51,6 @@ export default function App() {
             <Route path="productos/nuevo" element={<ProductoFormPage />} />
             <Route path="productos/:id/editar" element={<ProductoFormPage />} />
             <Route path="categorias" element={<CategoriasAdminPage />} />
-            <Route path="importar" element={<AdminImportarPage />} />
           </Route>
         </Route>
       </Routes>

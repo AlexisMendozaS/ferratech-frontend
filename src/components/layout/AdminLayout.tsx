@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   FileText,
-  FileUp,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -68,7 +67,6 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Productos', href: '/admin/productos', icon: Package, end: false },
       { label: 'Categorías', href: '/admin/categorias', icon: Tag, end: false },
-      { label: 'Importar PDF', href: '/admin/importar', icon: FileUp, end: true },
     ],
   },
 ]
