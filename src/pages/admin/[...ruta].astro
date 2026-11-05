@@ -1,0 +1,9 @@
+---
+/** Panel de administración: React solo en el navegador (DEC-015). Nunca se indexa. */
+import Base from '@/layouts/Base.astro'
+import AdminApp from '@/admin/AdminApp'
+---
+
+<Base titulo="Panel de administración" noindex>
+  <AdminApp client:only="react" />
+</Base>

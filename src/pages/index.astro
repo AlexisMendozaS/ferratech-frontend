@@ -1,0 +1,201 @@
+---
+/**
+ * Portada de una sola página (INI-007): buscador principal, categorías y catálogo.
+ * Con `?q=` muestra la búsqueda híbrida; si no hay coincidencias, los productos más parecidos y
+ * el formulario «Cotiza lo que buscas» (INI-006). Nunca una pantalla vacía.
+ */
+import { ClipboardList, Search, Truck } from 'lucide-react'
+
+import Publico from '@/layouts/Publico.astro'
+import TarjetaProducto from '@/componentes-astro/TarjetaProducto.astro'
+import Paginacion from '@/componentes-astro/Paginacion.astro'
+import BarraBusqueda from '@/islas/BarraBusqueda'
+import CotizaLoQueBuscas from '@/islas/CotizaLoQueBuscas'
+import { api, arbolDeCategorias } from '@/lib/api'
+import { LEMA, organizacion, sitioConBuscador } from '@/lib/seo'
+
+const POR_PAGINA = 24
+const parametros = Astro.url.searchParams
+const q = (parametros.get('q') ?? '').trim().slice(0, 100)
+const categoria = (parametros.get('categoria') ?? '').trim()
+const pagina = Math.max(1, Number.parseInt(parametros.get('pagina') ?? '1', 10) || 1)
+
+const [categorias, resultado] = await Promise.all([
+  api.categorias(),
+  api.buscar({ q: q || null, categoria: categoria || null, page: pagina, limit: POR_PAGINA }),
+])
+const secciones = arbolDeCategorias(categorias)
+const seccionActual = secciones.find((s) => s.slug === categoria)
+const origen = (Astro.site?.origin ?? Astro.url.origin).replace(/\/$/, '')
+
+// Búsquedas: un minuto en el CDN; el catálogo, cinco. Después se sirve la copia mientras se renueva.
+Astro.response.headers.set('Cache-Control', `public, s-maxage=${q ? 60 : 300}, stale-while-revalidate=86400`)
+
+const populares = ['Varilla', 'Alambre recocido', 'Malla ciclónica', 'Block', 'Lámina galvanizada', 'Clavos']
+const titulo = q ? `Resultados para «${q}»` : 'Materiales de construcción con cotización sin costo'
+const descripcion = q
+  ? `Encuentra ${q} y materiales parecidos. ${LEMA}.`
+  : `Varilla, alambre, mallas, block, cemento, láminas y más materiales para obra en todo México. ${LEMA}.`
+---
+
+<Publico
+  titulo={titulo}
+  descripcion={descripcion}
+  canonica={categoria && seccionActual ? `/categoria/${seccionActual.slug}` : '/'}
+  noindex={Boolean(q) || pagina > 1 || Boolean(categoria)}
+  jsonld={q ? [] : [organizacion(origen), sitioConBuscador(origen)]}
+  busqueda={q}
+  sinBuscador={!q}
+>
+  {
+    !q && (
+      <section class="bg-primary pb-14 pt-10 text-primary-foreground sm:pb-20 sm:pt-16">
+        <div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
+          <h1 class="text-balance text-3xl font-bold leading-tight sm:text-5xl">Materiales de construcción, cotizados sin costo</h1>
+          <p class="mx-auto mt-4 max-w-xl text-pretty text-primary-foreground/80 sm:text-lg">
+            Dinos qué necesitas para tu obra y te conseguimos el mejor precio, en cualquier estado de México.
+          </p>
+          <div class="mt-8">
+            <BarraBusqueda client:load grande />
+          </div>
+          <ul class="mt-4 flex flex-wrap justify-center gap-2 text-sm" aria-label="Búsquedas frecuentes">
+            {populares.map((p) => (
+              <li>
+                <a href={`/?q=${encodeURIComponent(p)}`} class="rounded-full bg-white/10 px-3 py-1 hover:bg-white/20">
+                  {p}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    !q && (
+      <section aria-label="Cómo funciona" class="border-b bg-card">
+        <ol class="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:grid-cols-3 sm:px-6">
+          <li class="flex gap-3">
+            <Search className="size-6 shrink-0 text-secondary" aria-hidden="true" />
+            <div>
+              <p class="font-semibold">1. Busca tu material</p>
+              <p class="text-sm text-muted-foreground">Por nombre, medida o para qué lo necesitas.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <ClipboardList className="size-6 shrink-0 text-secondary" aria-hidden="true" />
+            <div>
+              <p class="font-semibold">2. Arma tu cotización</p>
+              <p class="text-sm text-muted-foreground">Elige medidas y cantidades. Sin registro.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <Truck className="size-6 shrink-0 text-secondary" aria-hidden="true" />
+            <div>
+              <p class="font-semibold">3. Te conseguimos el mejor precio</p>
+              <p class="text-sm text-muted-foreground">Un asesor te responde con la cotización y la entrega.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+    )
+  }
+
+  <div class="mx-auto max-w-7xl px-4 sm:px-6">
+    {
+      q ? (
+        <section class="pt-8" aria-labelledby="titulo-resultados">
+          {resultado.modo === 'parecidos' ? (
+            <>
+              <h1 id="titulo-resultados" class="text-2xl font-bold">
+                No encontramos exactamente «{q}»
+              </h1>
+              <p class="mt-1 text-muted-foreground">Estos productos se le parecen. Si no es lo que buscas, te lo conseguimos.</p>
+              <div class="mt-6">
+                <CotizaLoQueBuscas client:visible busqueda={q} />
+              </div>
+              <h2 class="mt-10 text-lg font-semibold">Productos parecidos</h2>
+            </>
+          ) : (
+            <>
+              <h1 id="titulo-resultados" class="text-2xl font-bold">
+                Resultados para «{q}»
+              </h1>
+              <p class="mt-1 text-sm text-muted-foreground">{resultado.total} producto(s)</p>
+            </>
+          )}
+          <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {resultado.productos.map((p, i) => <TarjetaProducto producto={p} prioridad={i < 4} />)}
+          </div>
+          <Paginacion pagina={pagina} total={resultado.total} porPagina={POR_PAGINA} url={Astro.url} />
+          {resultado.modo === 'resultados' && (
+            <p class="mt-10 text-center text-sm text-muted-foreground">
+              ¿No ves lo que necesitas? <a href="/cotizacion" class="font-medium text-primary underline">Pídelo en tu cotización</a> y te lo conseguimos.
+            </p>
+          )}
+        </section>
+      ) : (
+        <>
+          <section id="categorias" class="scroll-mt-20 pt-12" aria-labelledby="titulo-categorias">
+            <h2 id="titulo-categorias" class="text-2xl font-bold">Categorías</h2>
+            <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {secciones.map((s) => (
+                <div class="rounded-lg border bg-card p-5">
+                  <h3 class="font-semibold">
+                    <a href={`/categoria/${s.slug}`} class="hover:underline">
+                      {s.nombre}
+                    </a>
+                  </h3>
+                  {s.familias.length > 0 && (
+                    <ul class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                      {s.familias.map((f) => (
+                        <li>
+                          <a href={`/categoria/${f.slug}`} class="hover:text-foreground hover:underline">
+                            {f.nombre}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section id="catalogo" class="scroll-mt-20 pt-14" aria-labelledby="titulo-catalogo">
+            <h2 id="titulo-catalogo" class="text-2xl font-bold">
+              {seccionActual ? seccionActual.nombre : 'Catálogo'}
+            </h2>
+            <nav aria-label="Filtrar por categoría" class="-mx-4 mt-4 overflow-x-auto px-4">
+              <ul class="flex gap-2 pb-2">
+                <li>
+                  <a
+                    href="/#catalogo"
+                    class:list={['whitespace-nowrap rounded-full border px-3 py-1 text-sm', !categoria ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-muted']}
+                  >
+                    Todo
+                  </a>
+                </li>
+                {secciones.map((s) => (
+                  <li>
+                    <a
+                      href={`/?categoria=${s.slug}#catalogo`}
+                      class:list={['whitespace-nowrap rounded-full border px-3 py-1 text-sm', categoria === s.slug ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-muted']}
+                    >
+                      {s.nombre}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+              {resultado.productos.map((p) => <TarjetaProducto producto={p} />)}
+            </div>
+            <Paginacion pagina={pagina} total={resultado.total} porPagina={POR_PAGINA} url={Astro.url} ancla="#catalogo" />
+          </section>
+        </>
+      )
+    }
+  </div>
+</Publico>

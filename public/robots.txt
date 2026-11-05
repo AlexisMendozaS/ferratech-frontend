@@ -1,9 +1,0 @@
-User-agent: *
-Allow: /
-
-# No indexar rutas privadas / de administración
-Disallow: /admin/
-Disallow: /login
-Disallow: /carrito
-
-Sitemap: https://ferratech.com.mx/sitemap.xml

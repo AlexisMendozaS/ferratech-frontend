@@ -1,7 +1,7 @@
 /**
  * Pruebas de punta a punta (E2E) con Playwright — DEC-003, INI-010.
  *
- * Levanta su propio backend (puerto 8001) y frontend (puerto 5174), distintos de los de
+ * Levanta su propio backend (puerto 8001) y sitio Astro (puerto 5174), distintos de los de
  * desarrollo, contra una base de MongoDB SEPARADA (`ferratech_e2e`), con un administrador y un
  * secreto JWT de prueba (ver `e2e/entorno.ts`): la sesión se simula sin Google.
  *
@@ -24,6 +24,8 @@ const backendEnv: Record<string, string> = {
   JWT_SECRET: JWT_SECRET_E2E,
   ADMIN_EMAIL: ADMIN_E2E,
   PYTHONDONTWRITEBYTECODE: '1',
+  // Sin Voyage: la búsqueda usa solo texto y las pruebas no dependen de un servicio externo.
+  VOYAGE_API_KEY: '',
 }
 if (process.env.E2E_MONGO_URI) backendEnv.MONGO_URI = process.env.E2E_MONGO_URI
 
@@ -54,7 +56,7 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
-      command: `pnpm exec vite --host 127.0.0.1 --port ${FRONTEND_PORT} --strictPort`,
+      command: `pnpm exec astro dev --host 127.0.0.1 --port ${FRONTEND_PORT}`,
       url: FRONTEND_URL,
       env: { VITE_API_URL: BACKEND_URL },
       reuseExistingServer: false,

@@ -1,0 +1,47 @@
+---
+/** Tarjeta de producto en listados: sin precio (DEC-012), con llamada a cotizar. */
+import type { ProductoTarjeta } from '@/types/producto'
+
+interface Props {
+  producto: ProductoTarjeta
+  /** Las primeras tarjetas de la página se cargan sin esperar (mejor LCP). */
+  prioridad?: boolean
+}
+
+const { producto: p, prioridad = false } = Astro.props
+const href = `/producto/${p.slug}`
+---
+
+<article class="group flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md">
+  <a href={href} class="relative block aspect-square bg-white" tabindex="-1" aria-hidden="true">
+    {
+      p.imagen ? (
+        <img
+          src={p.imagen.url}
+          alt=""
+          width="500"
+          height="500"
+          loading={prioridad ? 'eager' : 'lazy'}
+          fetchpriority={prioridad ? 'high' : 'auto'}
+          decoding="async"
+          class="size-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.03]"
+        />
+      ) : (
+        <span class="flex size-full items-center justify-center text-sm text-muted-foreground">Imagen próximamente</span>
+      )
+    }
+    {p.disponibilidad === 'bajo_pedido' && <span class="absolute left-2 top-2 rounded bg-muted px-2 py-0.5 text-xs font-medium">Bajo pedido</span>}
+  </a>
+  <div class="flex flex-1 flex-col gap-2 p-4">
+    <h3 class="font-semibold leading-snug">
+      <a href={href} class="hover:underline">{p.nombre}</a>
+    </h3>
+    {p.descripcion_corta && <p class="line-clamp-2 text-sm text-muted-foreground">{p.descripcion_corta}</p>}
+    <div class="mt-auto flex items-center justify-between gap-2 pt-2">
+      <span class="text-xs text-muted-foreground">{p.num_variantes > 1 ? `${p.num_variantes} opciones` : ' '}</span>
+      <a href={href} class="rounded-md bg-secondary px-3 py-1.5 text-sm font-semibold text-secondary-foreground hover:bg-secondary/90">
+        Cotizar
+      </a>
+    </div>
+  </div>
+</article>

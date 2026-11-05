@@ -112,25 +112,25 @@ test('alta completa en el panel, publicación y página pública sin datos inter
   const slug = `alambre-pulido-e2e-${SUFIJO}`
   await page.goto(`/producto/${slug}`)
   await expect(page.getByRole('heading', { level: 1, name: NOMBRE })).toBeVisible()
-  await expect(page.getByText('Cotiza sin costo.')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Medidas por variante' })).toBeVisible()
-  await page.getByRole('radio', { name: '16' }).click()
-  await expect(page.getByText(/Se vende por\s+kg/)).toBeVisible()
+  await expect(page.getByText(/Cotización sin costo/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Medidas y presentaciones' })).toBeVisible()
+  await page.getByRole('button', { name: '16', exact: true }).click()
+  await expect(page.getByText('Cantidad (kg)')).toBeVisible()
   const html = await page.content()
   expect(html, 'la marca interna se filtró al sitio').not.toContain(MARCA_SECRETA)
   expect(html, 'el proveedor interno se filtró al sitio').not.toContain(PROVEEDOR_SECRETO)
   expect(html, 'el costo interno se filtró al sitio').not.toContain('31.5')
   await captura(page, 'pagina_publica_variante_elegida')
 
-  await page.getByRole('button', { name: 'Agregar a mi cotización' }).first().click()
+  await page.getByRole('button', { name: 'Agregar a mi cotización' }).click()
   await expect(page.getByText('Agregado a tu cotización')).toBeVisible()
 
-  // ── Búsqueda y carrito ─────────────────────────────────────────────────────
-  await page.goto(`/productos?q=${SUFIJO}`)
+  // ── Búsqueda y cotización ──────────────────────────────────────────────────
+  await page.goto(`/?q=${SUFIJO}`)
   await expect(page.getByRole('link', { name: NOMBRE })).toBeVisible()
   await captura(page, 'busqueda_lo_encuentra')
 
-  await page.goto('/carrito')
+  await page.goto('/cotizacion')
   await expect(page.getByText('Calibre 16')).toBeVisible()
   await captura(page, 'carrito_con_la_variante')
 })

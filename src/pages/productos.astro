@@ -1,0 +1,5 @@
+---
+/** URL vieja del listado (antes de INI-007): la búsqueda vive en la portada. */
+const q = Astro.url.searchParams.get('q')
+return Astro.redirect(q ? `/?q=${encodeURIComponent(q)}` : '/#catalogo', 301)
+---

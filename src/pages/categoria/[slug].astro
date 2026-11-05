@@ -1,0 +1,99 @@
+---
+/** Página de categoría (INI-007): texto propio, familias y productos, con URL por slug. */
+import Publico from '@/layouts/Publico.astro'
+import TarjetaProducto from '@/componentes-astro/TarjetaProducto.astro'
+import Paginacion from '@/componentes-astro/Paginacion.astro'
+import { api } from '@/lib/api'
+import { LEMA, migas, recortar } from '@/lib/seo'
+
+const POR_PAGINA = 24
+const { slug = '' } = Astro.params
+const categoria = await api.categoria(slug)
+if (!categoria || categoria.estado === 'oculta') {
+  Astro.response.status = 404
+  return Astro.rewrite('/404')
+}
+if (categoria.slug !== slug) return Astro.redirect(`/categoria/${categoria.slug}`, 301)
+
+const pagina = Math.max(1, Number.parseInt(Astro.url.searchParams.get('pagina') ?? '1', 10) || 1)
+const [categorias, resultado] = await Promise.all([
+  api.categorias(),
+  api.buscar({ categoria: categoria.slug, page: pagina, limit: POR_PAGINA }),
+])
+const padre = categoria.padre ? categorias.find((c) => c.id === categoria.padre) : undefined
+const familias = categorias.filter((c) => c.padre === categoria.id).sort((a, b) => a.orden - b.orden)
+const hermanas = padre ? categorias.filter((c) => c.padre === padre.id && c.id !== categoria.id) : []
+
+const origen = (Astro.site?.origin ?? Astro.url.origin).replace(/\/$/, '')
+const ruta = [
+  { nombre: 'Inicio', ruta: '/' },
+  ...(padre ? [{ nombre: padre.nombre, ruta: `/categoria/${padre.slug}` }] : []),
+  { nombre: categoria.nombre, ruta: `/categoria/${categoria.slug}` },
+]
+
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400')
+---
+
+<Publico
+  titulo={categoria.meta_titulo ?? `${categoria.nombre}: cotiza en línea`}
+  descripcion={categoria.meta_descripcion ?? recortar(`${categoria.descripcion ?? categoria.nombre}. ${LEMA}.`)}
+  canonica={`/categoria/${categoria.slug}${pagina > 1 ? `?pagina=${pagina}` : ''}`}
+  jsonld={[migas(origen, ruta)]}
+>
+  <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+    <nav aria-label="Ruta" class="text-sm text-muted-foreground">
+      <ol class="flex flex-wrap items-center gap-1">
+        {
+          ruta.map((paso, i) => (
+            <li class="flex items-center gap-1">
+              {i > 0 && <span aria-hidden="true">/</span>}
+              {i < ruta.length - 1 ? (
+                <a href={paso.ruta} class="hover:text-foreground hover:underline">
+                  {paso.nombre}
+                </a>
+              ) : (
+                <span aria-current="page" class="text-foreground">
+                  {paso.nombre}
+                </span>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <header class="mt-4 max-w-3xl">
+      <h1 class="text-3xl font-bold">{categoria.nombre}</h1>
+      {categoria.descripcion && <p class="mt-2 text-pretty text-muted-foreground">{categoria.descripcion}</p>}
+    </header>
+
+    {
+      (familias.length > 0 || hermanas.length > 0) && (
+        <nav aria-label={familias.length ? 'Familias' : 'Otras familias'} class="mt-6">
+          <ul class="flex flex-wrap gap-2">
+            {(familias.length ? familias : hermanas).map((f) => (
+              <li>
+                <a href={`/categoria/${f.slug}`} class="rounded-full border bg-card px-3 py-1 text-sm hover:bg-muted">
+                  {f.nombre}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    <p class="mt-6 text-sm text-muted-foreground">{resultado.total} producto(s)</p>
+    <div class="mt-3 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+      {resultado.productos.map((p, i) => <TarjetaProducto producto={p} prioridad={i < 4} />)}
+    </div>
+    {
+      resultado.total === 0 && (
+        <p class="mt-6 rounded-lg border bg-card p-6 text-center">
+          Pronto agregaremos productos aquí. Mientras, <a href="/cotizacion" class="font-medium text-primary underline">pídenos lo que necesites</a> y te lo cotizamos.
+        </p>
+      )
+    }
+    <Paginacion pagina={pagina} total={resultado.total} porPagina={POR_PAGINA} url={Astro.url} />
+  </div>
+</Publico>

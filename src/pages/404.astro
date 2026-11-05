@@ -1,0 +1,17 @@
+---
+import Publico from '@/layouts/Publico.astro'
+import BarraBusqueda from '@/islas/BarraBusqueda'
+
+// En el servidor: las páginas de producto y categoría inexistentes la muestran con estado 404.
+export const prerender = false
+---
+
+<Publico titulo="Página no encontrada" noindex sinBuscador>
+  <div class="mx-auto max-w-xl px-4 py-20 text-center sm:px-6">
+    <p class="text-sm font-semibold text-secondary">Error 404</p>
+    <h1 class="mt-2 text-3xl font-bold">No encontramos esta página</h1>
+    <p class="mt-3 text-muted-foreground">Puede que el producto haya cambiado de nombre. Búscalo aquí:</p>
+    <div class="mt-6"><BarraBusqueda client:load /></div>
+    <a href="/" class="mt-6 inline-block text-sm font-medium text-primary underline">Volver al inicio</a>
+  </div>
+</Publico>

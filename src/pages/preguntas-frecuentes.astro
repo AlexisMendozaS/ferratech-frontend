@@ -1,0 +1,41 @@
+---
+/** Preguntas frecuentes: en el HTML (con <details>) y como FAQPage para Google. */
+import Publico from '@/layouts/Publico.astro'
+import { PREGUNTAS } from '@/lib/preguntas'
+
+export const prerender = true
+
+const faq = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: PREGUNTAS.flatMap((s) =>
+    s.items.map((p) => ({ '@type': 'Question', name: p.pregunta, acceptedAnswer: { '@type': 'Answer', text: p.respuesta } })),
+  ),
+}
+---
+
+<Publico titulo="Preguntas frecuentes" descripcion="Cómo cotizar materiales de construcción con FerraTech: tiempos, costos, productos bajo pedido y más." jsonld={[faq]}>
+  <div class="mx-auto max-w-3xl px-4 pt-10 sm:px-6">
+    <h1 class="text-3xl font-bold">Preguntas frecuentes</h1>
+    {
+      PREGUNTAS.map((s) => (
+        <section class="mt-8">
+          <h2 class="text-lg font-semibold">{s.titulo}</h2>
+          <div class="mt-3 divide-y rounded-lg border bg-card">
+            {s.items.map((p) => (
+              <details class="group px-4 py-3">
+                <summary class="cursor-pointer list-none font-medium marker:hidden">
+                  <span class="flex items-center justify-between gap-3">
+                    {p.pregunta}
+                    <span aria-hidden="true" class="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+                  </span>
+                </summary>
+                <p class="mt-2 text-sm leading-relaxed text-muted-foreground">{p.respuesta}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</Publico>

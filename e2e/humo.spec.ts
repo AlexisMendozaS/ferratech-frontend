@@ -1,5 +1,5 @@
 /**
- * Prueba de humo: la app arranca, habla con el backend y protege el panel.
+ * Prueba de humo: el sitio arranca, arma sus páginas con datos del backend y protege el panel.
  * Es la base mínima de INI-001; las pruebas de cada flujo llegan con su iniciativa (INI-010).
  */
 import { expect, test } from '@playwright/test'
@@ -8,22 +8,21 @@ test('la portada carga, muestra el buscador y no hay errores de JavaScript', asy
   const errores: string[] = []
   page.on('pageerror', (e) => errores.push(e.message))
 
-  const respuestaApi = page.waitForResponse(
-    (r) => r.url().includes(':8001/') && r.request().method() === 'GET',
-  )
-  await page.goto('/')
+  const respuesta = await page.goto('/')
+  expect(respuesta?.status()).toBe(200)
 
   await expect(page).toHaveTitle(/FerraTech/)
-  // En móvil el buscador puede estar dentro del menú; basta con que exista en la página.
-  await expect(page.getByPlaceholder('Buscar productos...').first()).toBeAttached()
-  expect((await respuestaApi).ok(), 'el backend respondió a la portada').toBeTruthy()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Buscar productos' })).toBeVisible()
+  // Las categorías salen del backend y vienen ya en el HTML (Astro, del lado del servidor).
+  await expect(page.getByRole('heading', { name: 'Categorías' })).toBeVisible()
   expect(errores, 'errores de JavaScript en la página').toEqual([])
 })
 
-test('buscar desde la URL lleva al listado de productos', async ({ page }) => {
+test('la URL vieja de búsqueda redirige a la portada y nunca queda vacía', async ({ page }) => {
   await page.goto('/productos?q=taladro')
-  await expect(page).toHaveURL(/\/productos\?q=taladro/)
-  await expect(page.getByText(/taladro/i).first()).toBeVisible()
+  await expect(page).toHaveURL(/\/\?q=taladro$/)
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('taladro')
 })
 
 test('el panel de administración sin sesión redirige al login', async ({ page }) => {

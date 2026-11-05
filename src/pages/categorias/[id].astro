@@ -1,0 +1,8 @@
+---
+/** URL vieja por id (`/categorias/:id`, antes de INI-007) → `/categoria/<slug>`. */
+import { api } from '@/lib/api'
+
+const categoria = await api.categoria(Astro.params.id ?? '')
+if (!categoria) return Astro.redirect('/#categorias', 301)
+return Astro.redirect(`/categoria/${categoria.slug}`, 301)
+---

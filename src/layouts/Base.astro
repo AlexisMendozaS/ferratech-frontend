@@ -1,0 +1,52 @@
+---
+/**
+ * Documento HTML con el <head> completo para SEO: título, descripción, canónica, Open Graph,
+ * robots y datos estructurados. Lo usan las páginas públicas y el panel.
+ */
+import '@/index.css'
+import { NOMBRE_SITIO } from '@/lib/seo'
+
+interface Props {
+  titulo: string
+  descripcion?: string
+  /** Ruta canónica (sin dominio). Por omisión, la ruta actual sin parámetros. */
+  canonica?: string
+  noindex?: boolean
+  imagen?: string | null
+  jsonld?: object[]
+  tipo?: 'website' | 'product'
+}
+
+const { titulo, descripcion, canonica, noindex = false, imagen, jsonld = [], tipo = 'website' } = Astro.props
+const origen = (Astro.site?.origin ?? Astro.url.origin).replace(/\/$/, '')
+const urlCanonica = `${origen}${canonica ?? Astro.url.pathname}`
+const tituloCompleto = titulo.includes(NOMBRE_SITIO) ? titulo : `${titulo} | ${NOMBRE_SITIO}`
+---
+
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{tituloCompleto}</title>
+    {descripcion && <meta name="description" content={descripcion} />}
+    <link rel="canonical" href={urlCanonica} />
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#2C3E50" />
+
+    <meta property="og:site_name" content={NOMBRE_SITIO} />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:type" content={tipo === 'product' ? 'product' : 'website'} />
+    <meta property="og:title" content={tituloCompleto} />
+    {descripcion && <meta property="og:description" content={descripcion} />}
+    <meta property="og:url" content={urlCanonica} />
+    {imagen && <meta property="og:image" content={imagen} />}
+    <meta name="twitter:card" content={imagen ? 'summary_large_image' : 'summary'} />
+
+    {jsonld.map((dato) => <script type="application/ld+json" set:html={JSON.stringify(dato)} />)}
+  </head>
+  <body class="min-h-dvh bg-background font-sans text-foreground antialiased">
+    <slot />
+  </body>
+</html>

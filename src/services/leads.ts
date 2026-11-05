@@ -4,7 +4,7 @@ export interface LeadPayload {
   nombre: string
   telefono: string
   email?: string
-  origen: 'popup' | 'whatsapp' | 'widget_lateral' | 'footer_newsletter'
+  origen: 'popup' | 'whatsapp' | 'widget_lateral' | 'footer_newsletter' | 'busqueda'
   notas?: string
 }
 

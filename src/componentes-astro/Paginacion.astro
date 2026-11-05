@@ -1,0 +1,50 @@
+---
+/** Paginación con enlaces reales (rastreables), conservando los demás parámetros. */
+interface Props {
+  pagina: number
+  total: number
+  porPagina: number
+  /** URL base con sus parámetros; se le agrega `pagina`. */
+  url: URL
+  ancla?: string
+}
+
+const { pagina, total, porPagina, url, ancla = '' } = Astro.props
+const paginas = Math.max(1, Math.ceil(total / porPagina))
+const enlace = (n: number) => {
+  const u = new URL(url)
+  if (n <= 1) u.searchParams.delete('pagina')
+  else u.searchParams.set('pagina', String(n))
+  return `${u.pathname}${u.search}${ancla}`
+}
+const visibles = [...new Set([1, pagina - 1, pagina, pagina + 1, paginas])].filter((n) => n >= 1 && n <= paginas).sort((a, b) => a - b)
+---
+
+{
+  paginas > 1 && (
+    <nav aria-label="Páginas" class="mt-8 flex flex-wrap items-center justify-center gap-1">
+      {pagina > 1 && (
+        <a href={enlace(pagina - 1)} rel="prev" class="rounded-md border bg-card px-3 py-1.5 text-sm hover:bg-muted">
+          Anterior
+        </a>
+      )}
+      {visibles.map((n, i) => (
+        <>
+          {i > 0 && n - visibles[i - 1] > 1 && <span class="px-1 text-muted-foreground">…</span>}
+          <a
+            href={enlace(n)}
+            aria-current={n === pagina ? 'page' : undefined}
+            class:list={['min-w-9 rounded-md border px-3 py-1.5 text-center text-sm', n === pagina ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-muted']}
+          >
+            {n}
+          </a>
+        </>
+      ))}
+      {pagina < paginas && (
+        <a href={enlace(pagina + 1)} rel="next" class="rounded-md border bg-card px-3 py-1.5 text-sm hover:bg-muted">
+          Siguiente
+        </a>
+      )}
+    </nav>
+  )
+}

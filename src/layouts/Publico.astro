@@ -1,0 +1,116 @@
+---
+/**
+ * Marco de las páginas públicas: encabezado con buscador, pie y los botones de contacto.
+ * Ninguna pantalla pública muestra precio, marca ni proveedor (DEC-012).
+ */
+import { ClipboardList, Wrench } from 'lucide-react'
+
+import Base from '@/layouts/Base.astro'
+import BarraBusqueda from '@/islas/BarraBusqueda'
+import ContadorCotizacion from '@/islas/ContadorCotizacion'
+import Avisos from '@/islas/Avisos'
+import { WhatsAppButton } from '@/components/leads/WhatsAppButton'
+import { LeadWidget } from '@/components/leads/LeadWidget'
+import { api, arbolDeCategorias } from '@/lib/api'
+import { LEMA, NOMBRE_SITIO } from '@/lib/seo'
+import { numeroWhatsApp } from '@/lib/contacto'
+
+interface Props {
+  titulo: string
+  descripcion?: string
+  canonica?: string
+  noindex?: boolean
+  imagen?: string | null
+  jsonld?: object[]
+  tipo?: 'website' | 'product'
+  /** Texto del buscador del encabezado. */
+  busqueda?: string
+  /** En la portada el buscador grande va en el contenido, no en el encabezado. */
+  sinBuscador?: boolean
+}
+
+const { busqueda = '', sinBuscador = false, ...seo } = Astro.props
+let secciones: ReturnType<typeof arbolDeCategorias> = []
+try {
+  secciones = arbolDeCategorias(await api.categorias())
+} catch {
+  // Sin categorías el pie queda sin esa columna; la página sigue funcionando.
+}
+const whatsapp = numeroWhatsApp()
+const anio = new Date().getFullYear()
+---
+
+<Base {...seo}>
+  <a href="#contenido" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[60] focus:rounded focus:bg-white focus:px-3 focus:py-2">
+    Ir al contenido
+  </a>
+  <header class="sticky top-0 z-50 bg-primary text-primary-foreground shadow-md">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:h-16 sm:flex-nowrap sm:gap-6 sm:px-6 sm:py-0">
+      <a href="/" class="flex shrink-0 items-center gap-2 text-lg font-bold tracking-wide" aria-label={`${NOMBRE_SITIO}, inicio`}>
+        <Wrench className="size-6 text-accent" aria-hidden="true" />
+        <span>{NOMBRE_SITIO}</span>
+      </a>
+      <div class="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1">
+        {!sinBuscador && <BarraBusqueda client:load inicial={busqueda} />}
+      </div>
+      <nav aria-label="Principal" class="ml-auto flex shrink-0 items-center gap-1 sm:ml-0">
+        <a href="/#categorias" class="hidden rounded-md px-3 py-1.5 text-sm font-medium hover:bg-white/10 md:block">Categorías</a>
+        <ContadorCotizacion client:only="react">
+          <a slot="fallback" href="/cotizacion" class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium" aria-label="Mi cotización">
+            <ClipboardList className="size-5" aria-hidden="true" />
+            <span class="hidden sm:inline">Mi cotización</span>
+          </a>
+        </ContadorCotizacion>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <slot />
+  </main>
+
+  <footer class="mt-16 bg-primary text-primary-foreground">
+    <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+      <div class="space-y-3">
+        <p class="flex items-center gap-2 text-lg font-bold"><Wrench className="size-5 text-accent" aria-hidden="true" />{NOMBRE_SITIO}</p>
+        <p class="text-sm text-primary-foreground/75">
+          Materiales de construcción y ferretería para obra en todo México. {LEMA}.
+        </p>
+      </div>
+      {
+        secciones.length > 0 && (
+          <div class="lg:col-span-2">
+            <p class="mb-3 font-semibold">Categorías</p>
+            <ul class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-primary-foreground/75">
+              {secciones.map((s) => (
+                <li>
+                  <a href={`/categoria/${s.slug}`} class="hover:text-primary-foreground">
+                    {s.nombre}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+      <div>
+        <p class="mb-3 font-semibold">Atención</p>
+        <ul class="space-y-2 text-sm text-primary-foreground/75">
+          <li><a href="/cotizacion" class="hover:text-primary-foreground">Mi cotización</a></li>
+          <li><a href="/preguntas-frecuentes" class="hover:text-primary-foreground">Preguntas frecuentes</a></li>
+          {whatsapp && <li><a href={`https://wa.me/${whatsapp}`} class="hover:text-primary-foreground" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>}
+          <li><a href="/privacidad" class="hover:text-primary-foreground">Aviso de privacidad</a></li>
+          <li><a href="/terminos" class="hover:text-primary-foreground">Términos y condiciones</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/10">
+      <p class="mx-auto max-w-7xl px-4 py-4 text-xs text-primary-foreground/60 sm:px-6">© {anio} {NOMBRE_SITIO}. Precios sujetos a cotización.</p>
+    </div>
+  </footer>
+
+  {whatsapp && <WhatsAppButton />}
+  <!-- En móvil la pestaña lateral tapa el contenido: ahí basta el botón de WhatsApp. -->
+  <div class="hidden md:block"><LeadWidget client:idle /></div>
+  <Avisos client:only="react" />
+</Base>

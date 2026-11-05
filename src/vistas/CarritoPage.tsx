@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { ModalCotizacion } from '@/components/cotizacion/ModalCotizacion'
-import { Seo } from '@/components/seo/Seo'
 import { useCarritoStore } from '@/store/carritoStore'
 
 export default function CarritoPage() {
@@ -27,7 +25,7 @@ export default function CarritoPage() {
           Agrega productos al carrito para solicitar una cotizacion.
         </p>
         <Button asChild>
-          <Link to="/productos">Explorar productos</Link>
+          <a href="/#catalogo">Explorar productos</a>
         </Button>
       </main>
     )
@@ -35,7 +33,6 @@ export default function CarritoPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <Seo title="Carrito de Cotización" noindex />
       <h1 className="mb-6 text-2xl font-bold">
         Carrito{' '}
         <Badge variant="secondary" className="ml-2 text-sm">
@@ -131,7 +128,7 @@ export default function CarritoPage() {
             Solicitar cotizacion
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/productos">Seguir explorando</Link>
+            <a href="/#catalogo">Seguir explorando</a>
           </Button>
         </aside>
       </div>

@@ -1,0 +1,10 @@
+---
+import Base from '@/layouts/Base.astro'
+import AdminApp from '@/admin/AdminApp'
+
+export const prerender = true
+---
+
+<Base titulo="Iniciar sesión" noindex>
+  <AdminApp client:only="react" />
+</Base>
