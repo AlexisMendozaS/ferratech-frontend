@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { CheckCircle, Download, Loader2 } from 'lucide-react'
+import { CheckCircle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { PDFDownloadLink } from '@react-pdf/renderer'
 
 import {
   Dialog,
@@ -27,7 +26,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useCarritoStore } from '@/store/carritoStore'
 import { buildPayload, enviarCotizacion, type ClienteData } from '@/services/cotizaciones'
-import { CotizacionPDF } from '@/components/cotizacion/CotizacionPDF'
+
+const DescargaPDF = lazy(() => import('@/components/cotizacion/DescargaPDF'))
 import type { CartItem } from '@/store/carritoStore'
 
 const schema = z.object({
@@ -78,23 +78,10 @@ function SuccessScreen({
         </p>
       </div>
 
-      <PDFDownloadLink
-        document={<CotizacionPDF cliente={cliente} items={items} />}
-        fileName={buildFilename(cliente.nombre)}
-      >
-        {({ loading, error }) =>
-          error ? null : (
-            <Button variant="outline" className="gap-2" disabled={loading}>
-              {loading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Download className="size-4" />
-              )}
-              {loading ? 'Generando PDF...' : 'Descargar cotizacion (PDF)'}
-            </Button>
-          )
-        }
-      </PDFDownloadLink>
+      {/* La librería de PDF pesa más de 1 MB: se descarga solo al llegar a esta pantalla. */}
+      <Suspense fallback={<Button variant="outline" className="gap-2" disabled><Loader2 className="size-4 animate-spin" />Preparando PDF...</Button>}>
+        <DescargaPDF cliente={cliente} items={items} fileName={buildFilename(cliente.nombre)} />
+      </Suspense>
 
       <Button onClick={onClose} className="w-full">
         Cerrar
