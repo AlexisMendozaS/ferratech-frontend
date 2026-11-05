@@ -1,16 +1,19 @@
 /**
  * WhatsAppButton — botón flotante en esquina inferior derecha.
  * Abre WhatsApp con un mensaje predefinido.
- * El número se configura via VITE_WHATSAPP_NUMBER (formato: 521XXXXXXXXXX).
+ * El número sale de VITE_WHATSAPP_NUMBER (ver `numeroWhatsApp`); si no hay, no se muestra.
  */
 
-const WA_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER ?? '521XXXXXXXXXX'
+import { numeroWhatsApp } from '@/lib/contacto'
+
+const WA_NUMBER = numeroWhatsApp()
 const WA_MESSAGE = encodeURIComponent(
   'Hola, me interesa información sobre sus productos. ¿Me pueden ayudar?'
 )
 const WA_URL = `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}`
 
 export function WhatsAppButton() {
+  if (!WA_NUMBER) return null
   return (
     <a
       href={WA_URL}
