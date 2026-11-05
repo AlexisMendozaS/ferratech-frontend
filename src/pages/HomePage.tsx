@@ -9,7 +9,7 @@ import { Seo } from '@/components/seo/Seo'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { productosService } from '@/services/productos'
 import { categoriasService } from '@/services/categorias'
-import type { Producto } from '@/types/producto'
+import type { ProductoTarjeta } from '@/types/producto'
 import type { Categoria } from '@/types/categoria'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -216,7 +216,7 @@ function OfertasSection({
   productos,
   loading,
 }: {
-  productos: Producto[]
+  productos: ProductoTarjeta[]
   loading: boolean
 }) {
   return (
@@ -322,7 +322,7 @@ function CategoriasSection({
 
 export default function HomePage() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [productos, setProductos] = useState<Producto[]>([])
+  const [productos, setProductos] = useState<ProductoTarjeta[]>([])
   const [loadingCats, setLoadingCats] = useState(true)
   const [loadingProds, setLoadingProds] = useState(true)
 

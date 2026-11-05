@@ -36,7 +36,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 
 import { categoriasService } from '@/services/categorias'
-import { productosService } from '@/services/productos'
+import { adminProductosService, motivosDeError } from '@/services/adminProductos'
+import { Seleccion } from '@/components/admin/producto/campos'
 import type { Categoria } from '@/types/categoria'
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,8 @@ const categoriaSchema = z.object({
     .optional()
     .or(z.literal(''))
     .default(''),
+  padre: z.string().default(''),
+  estado: z.enum(['activa', 'oculta']).default('activa'),
 })
 
 type CategoriaFormValues = z.infer<typeof categoriaSchema>
@@ -63,13 +66,15 @@ type CategoriaFormValues = z.infer<typeof categoriaSchema>
 interface CategoriaDialogProps {
   open: boolean
   categoria?: Categoria
+  /** Secciones disponibles como padre (las categorías sin padre, menos la propia). */
+  secciones: Categoria[]
   onClose: () => void
   onSaved: (categoria: Categoria) => void
 }
 
 // El padre lo remonta con una `key` nueva cada vez que se abre, así el formulario
 // y la vista previa arrancan limpios sin sincronizarlos en un efecto.
-function CategoriaDialog({ open, categoria, onClose, onSaved }: CategoriaDialogProps) {
+function CategoriaDialog({ open, categoria, secciones, onClose, onSaved }: CategoriaDialogProps) {
   const isEditing = !!categoria
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(categoria?.imagen ?? null)
@@ -82,6 +87,8 @@ function CategoriaDialog({ open, categoria, onClose, onSaved }: CategoriaDialogP
       nombre: categoria?.nombre ?? '',
       descripcion: categoria?.descripcion ?? '',
       imagen: categoria?.imagen ?? '',
+      padre: categoria?.padre ?? '',
+      estado: categoria?.estado ?? 'activa',
     },
   })
 
@@ -104,10 +111,14 @@ function CategoriaDialog({ open, categoria, onClose, onSaved }: CategoriaDialogP
   const onSubmit = async (values: CategoriaFormValues) => {
     setSubmitError(null)
     try {
+      // Antes la imagen elegida como archivo se descartaba; ahora se sube y se guarda su URL.
+      const imagen = imageFile ? await adminProductosService.subirImagen(imageFile) : values.imagen || null
       const payload = {
         nombre: values.nombre,
         descripcion: values.descripcion || null,
-        imagen: imageFile ? null : (values.imagen || null),
+        imagen,
+        padre: values.padre || null,
+        estado: values.estado,
       }
 
       let saved: Categoria
@@ -118,8 +129,8 @@ function CategoriaDialog({ open, categoria, onClose, onSaved }: CategoriaDialogP
       }
 
       onSaved(saved)
-    } catch {
-      setSubmitError('No se pudo guardar la categoría. Intenta de nuevo.')
+    } catch (e) {
+      setSubmitError(motivosDeError(e).join(' · '))
     }
   }
 
@@ -163,6 +174,23 @@ function CategoriaDialog({ open, categoria, onClose, onSaved }: CategoriaDialogP
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label htmlFor="padre" className="text-sm font-medium">Sección</label>
+                <Seleccion id="padre" {...form.register('padre')}>
+                  <option value="">Es una sección</option>
+                  {secciones.map((s) => <option key={s.id} value={s.id}>Familia de: {s.nombre}</option>)}
+                </Seleccion>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="estado" className="text-sm font-medium">Estado</label>
+                <Seleccion id="estado" {...form.register('estado')}>
+                  <option value="activa">Activa</option>
+                  <option value="oculta">Oculta (no se ve en el sitio)</option>
+                </Seleccion>
+              </div>
+            </div>
 
             {/* Imagen: preview o campo URL */}
             <div className="space-y-2">
@@ -329,17 +357,17 @@ export default function CategoriasAdminPage() {
 
   useEffect(() => {
     Promise.all([
-      categoriasService.listar(),
-      productosService.listar(100, 0),
+      categoriasService.listar(true),
+      adminProductosService.listar({ limit: 100 }),
     ])
-      .then(([cats, prods]) => {
+      .then(([cats, pagina]) => {
         setCategorias(cats)
         const countMap = new Map<string, number>()
         cats.forEach((c) => countMap.set(c.id, 0))
-        prods.forEach((p) =>
-          p.categorias.forEach((cid) =>
-            countMap.set(cid, (countMap.get(cid) ?? 0) + 1)
-          )
+        pagina.productos.forEach((p) =>
+          [p.categoria_principal, ...p.categorias].forEach((cid) => {
+            if (cid) countMap.set(cid, (countMap.get(cid) ?? 0) + 1)
+          })
         )
         setProductCountMap(countMap)
       })
@@ -446,6 +474,7 @@ export default function CategoriasAdminPage() {
         key={dialogKey}
         open={dialogOpen}
         categoria={editTarget}
+        secciones={categorias.filter((c) => !c.padre && c.id !== editTarget?.id)}
         onClose={() => {
           setDialogOpen(false)
           setEditTarget(undefined)

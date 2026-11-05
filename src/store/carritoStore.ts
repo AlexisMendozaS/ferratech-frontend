@@ -6,6 +6,9 @@ export interface CartItem {
   nombre: string
   imagen: string | null
   variante_seleccionada: string | null
+  /** Opcionales: los carritos guardados antes del modelo con variantes no los traen. */
+  sku?: string | null
+  unidad_venta?: string | null
   cantidad: number
 }
 
@@ -26,7 +29,7 @@ export const useCarritoStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addItem: ({ id_producto, nombre, imagen, variante_seleccionada, cantidad = 1 }) => {
+      addItem: ({ id_producto, nombre, imagen, variante_seleccionada, sku = null, unidad_venta = null, cantidad = 1 }) => {
         const key = itemKey(id_producto, variante_seleccionada)
         set((state) => {
           const existing = state.items.find(
@@ -42,7 +45,7 @@ export const useCarritoStore = create<CartState>()(
             }
           }
           return {
-            items: [...state.items, { id_producto, nombre, imagen, variante_seleccionada, cantidad }],
+            items: [...state.items, { id_producto, nombre, imagen, variante_seleccionada, sku, unidad_venta, cantidad }],
           }
         })
       },

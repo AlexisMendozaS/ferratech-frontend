@@ -14,6 +14,8 @@ export interface CotizacionPayload {
     id_producto: string
     nombre_producto: string
     variante_seleccionada: string | null
+    sku: string | null
+    unidad_venta: string | null
     cantidad: number
   }[]
 }
@@ -41,6 +43,8 @@ export function buildPayload(cliente: ClienteData, items: CartItem[]): Cotizacio
       id_producto: i.id_producto,
       nombre_producto: i.nombre,
       variante_seleccionada: i.variante_seleccionada,
+      sku: i.sku ?? null,
+      unidad_venta: i.unidad_venta ?? null,
       cantidad: i.cantidad,
     })),
   }

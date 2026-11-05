@@ -1,44 +1,23 @@
+/** Rutas PÚBLICAS de productos: solo publicados, sin marca, proveedor ni precio (DEC-012). */
 import client from '@/api/client'
-import type { Producto, ProductoCreate, ProductoUpdate, PaginatedProductoResponse } from '@/types/producto'
+import type { PaginaProductos, ProductoPublico, ProductoTarjeta } from '@/types/producto'
 
 export interface BuscarParams {
   q?: string
+  /** Id o slug; una sección incluye sus familias. */
   categoria?: string
-  atributo?: string
   page?: number
   limit?: number
 }
 
 export const productosService = {
   listar: (limit = 20, offset = 0) =>
-    client
-      .get<Producto[]>('/productos/', { params: { limit, offset } })
-      .then((r) => r.data),
+    client.get<ProductoTarjeta[]>('/productos/', { params: { limit, offset } }).then((r) => r.data),
 
   buscar: (params: BuscarParams) =>
-    client
-      .get<PaginatedProductoResponse>('/productos/buscar', { params })
-      .then((r) => r.data),
+    client.get<PaginaProductos>('/productos/buscar', { params }).then((r) => r.data),
 
-  obtener: (id: string) =>
-    client.get<Producto>(`/productos/${id}`).then((r) => r.data),
-
-  crear: (data: ProductoCreate) =>
-    client.post<Producto>('/productos/', data).then((r) => r.data),
-
-  actualizar: (id: string, data: ProductoUpdate) =>
-    client.put<Producto>(`/productos/${id}`, data).then((r) => r.data),
-
-  eliminar: (id: string) =>
-    client.delete(`/productos/${id}`).then((r) => r.data),
-
-  subirImagen: (id: string, file: File) => {
-    const form = new FormData()
-    form.append('imagen', file)
-    return client
-      .post<{ url: string }>(`/productos/${id}/imagen`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      .then((r) => r.data)
-  },
+  /** Por slug (o un slug anterior, o id). Si `slug` de la respuesta difiere, hay que redirigir. */
+  obtener: (idOSlug: string) =>
+    client.get<ProductoPublico>(`/productos/${encodeURIComponent(idOSlug)}`).then((r) => r.data),
 }
