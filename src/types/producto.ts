@@ -79,11 +79,23 @@ export interface ProductoTarjeta {
   num_variantes: number
 }
 
+/**
+ * `modo`: «catalogo» (listado sin texto), «resultados» (coincide con lo buscado) o «parecidos»
+ * (no hubo coincidencias: son los más cercanos; el sitio ofrece cotizar lo buscado). INI-006.
+ */
 export interface PaginaProductos {
   total: number
   page: number
   limit: number
   productos: ProductoTarjeta[]
+  modo: 'catalogo' | 'resultados' | 'parecidos'
+  consulta: string | null
+}
+
+/** Autocompletado de la barra de búsqueda (`GET /productos/sugerir`). */
+export interface Sugerencias {
+  productos: { slug: string; nombre: string }[]
+  categorias: { slug: string; nombre: string }[]
 }
 
 // ── Administración (incluye el bloque interno, que nunca se publica) ─────────
