@@ -40,7 +40,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'General',
     items: [
-      { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, end: true },
+      { label: 'Resumen', href: '/admin/dashboard', icon: LayoutDashboard, end: true },
     ],
   },
   {

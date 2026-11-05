@@ -6,12 +6,14 @@ import { useState } from 'react'
 import { Check, ClipboardPlus, Minus, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { registrarEvento } from '@/lib/eventos'
 import { cn } from '@/lib/utils'
 import { useCarritoStore } from '@/store/carritoStore'
 import { describeVariante, type Eje, type VariantePublica } from '@/types/producto'
 
 interface Props {
   id: string
+  slug: string
   nombre: string
   imagen: string | null
   ejes: Eje[]
@@ -32,7 +34,7 @@ const UNIDAD: Record<string, string> = {
   juego: 'juegos',
 }
 
-export default function AgregarACotizacion({ id, nombre, imagen, ejes, variantes, whatsapp }: Props) {
+export default function AgregarACotizacion({ id, slug, nombre, imagen, ejes, variantes, whatsapp }: Props) {
   const [valores, setValores] = useState<Record<string, string>>(() => variantes[0]?.valores ?? {})
   const [cantidad, setCantidad] = useState(1)
   const agregar = useCarritoStore((s) => s.addItem)
@@ -64,6 +66,7 @@ export default function AgregarACotizacion({ id, nombre, imagen, ejes, variantes
       unidad_venta: variante.unidad_venta,
       cantidad,
     })
+    registrarEvento('agregar_cotizacion', { producto: slug })
     toast.success('Agregado a tu cotización', {
       description: [nombre, descripcion].filter(Boolean).join(' · '),
       action: { label: 'Ver cotización', onClick: () => window.location.assign('/cotizacion') },

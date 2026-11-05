@@ -6,13 +6,20 @@ interface Props {
   producto: ProductoTarjeta
   /** Las primeras tarjetas de la página se cargan sin esperar (mejor LCP). */
   prioridad?: boolean
+  /** En resultados de búsqueda: para registrar en qué posición se hizo clic (INI-009). */
+  busqueda?: { q: string; posicion: number }
 }
 
-const { producto: p, prioridad = false } = Astro.props
+const { producto: p, prioridad = false, busqueda } = Astro.props
 const href = `/producto/${p.slug}`
 ---
 
-<article class="group flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md">
+<article
+  class="group flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md"
+  data-resultado={busqueda ? p.slug : undefined}
+  data-q={busqueda?.q}
+  data-posicion={busqueda?.posicion}
+>
   <a href={href} class="relative block aspect-square bg-white" tabindex="-1" aria-hidden="true">
     {
       p.imagen ? (

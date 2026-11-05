@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   actualizarEstado,
+  actualizarMonto,
   listarCotizaciones,
   type CotizacionResponse,
   type EstadoCotizacion,
@@ -30,17 +31,17 @@ const ESTADO_CONFIG: Record<
   { label: string; color: string; next: EstadoCotizacion[] }
 > = {
   pendiente: {
-    label: 'Pendiente',
+    label: 'Nueva',
     color: 'bg-yellow-100 text-yellow-800',
     next: ['contactado', 'perdida'],
   },
   contactado: {
-    label: 'Contactado',
+    label: 'Respondida',
     color: 'bg-blue-100 text-blue-800',
     next: ['cerrada', 'perdida'],
   },
   cerrada: {
-    label: 'Cerrada',
+    label: 'Ganada',
     color: 'bg-green-100 text-green-800',
     next: [],
   },
@@ -53,9 +54,9 @@ const ESTADO_CONFIG: Record<
 
 const FILTROS: { label: string; value: EstadoCotizacion | 'todas' }[] = [
   { label: 'Todas', value: 'todas' },
-  { label: 'Pendientes', value: 'pendiente' },
-  { label: 'Contactadas', value: 'contactado' },
-  { label: 'Cerradas', value: 'cerrada' },
+  { label: 'Nuevas', value: 'pendiente' },
+  { label: 'Respondidas', value: 'contactado' },
+  { label: 'Ganadas', value: 'cerrada' },
   { label: 'Perdidas', value: 'perdida' },
 ]
 
@@ -86,7 +87,22 @@ function DetalleCotizacion({
   onEstadoChange: (id: string, estado: EstadoCotizacion) => void
 }) {
   const [loading, setLoading] = useState(false)
+  const [monto, setMonto] = useState(cotizacion.monto?.toString() ?? '')
   const cfg = ESTADO_CONFIG[cotizacion.estado]
+
+  const guardarMonto = async () => {
+    const valor = Number(monto)
+    if (!monto.trim() || Number.isNaN(valor) || valor < 0) {
+      toast.error('Escribe un monto válido')
+      return
+    }
+    try {
+      await actualizarMonto(cotizacion.id, valor)
+      toast.success('Monto guardado')
+    } catch {
+      toast.error('No se pudo guardar el monto')
+    }
+  }
 
   const handleEstado = async (nuevoEstado: EstadoCotizacion) => {
     setLoading(true)
@@ -129,6 +145,7 @@ function DetalleCotizacion({
             <div className="rounded-lg border bg-muted/30 p-3 space-y-1 text-sm">
               <p><span className="text-muted-foreground">Teléfono:</span> <span className="font-medium">{cotizacion.cliente.telefono}</span></p>
               <p><span className="text-muted-foreground">Email:</span> <span className="font-medium">{cotizacion.cliente.email}</span></p>
+              <p><span className="text-muted-foreground">Estado de la obra:</span> <span className="font-medium">{cotizacion.cliente.estado_republica ?? 'No lo indicó'}</span></p>
               {cotizacion.cliente.notas && (
                 <p><span className="text-muted-foreground">Notas:</span> {cotizacion.cliente.notas}</p>
               )}
@@ -162,6 +179,26 @@ function DetalleCotizacion({
             <span className="text-sm text-muted-foreground">Estado actual:</span>
             <EstadoBadge estado={cotizacion.estado} />
           </div>
+
+          {cotizacion.estado === 'cerrada' && (
+            <div className="flex items-end gap-2">
+              <label className="grid gap-1 text-sm">
+                <span className="text-muted-foreground">Monto de la venta (MXN, interno)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={monto}
+                  onChange={(e) => setMonto(e.target.value)}
+                  className="h-9 w-40 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </label>
+              <Button size="sm" variant="outline" onClick={guardarMonto}>
+                Guardar
+              </Button>
+            </div>
+          )}
 
           {cfg.next.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -319,6 +356,7 @@ export default function AdminCotizacionesPage() {
       {/* Modal de detalle */}
       {seleccionada && (
         <DetalleCotizacion
+          key={seleccionada.id}
           cotizacion={seleccionada}
           onClose={() => setSeleccionada(null)}
           onEstadoChange={handleEstadoChange}

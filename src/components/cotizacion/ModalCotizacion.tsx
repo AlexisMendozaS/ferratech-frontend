@@ -26,15 +26,17 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useCarritoStore } from '@/store/carritoStore'
 import { buildPayload, enviarCotizacion, type ClienteData } from '@/services/cotizaciones'
+import type { CartItem } from '@/store/carritoStore'
+import { ESTADOS_MX } from '@/lib/estados'
 
 const DescargaPDF = lazy(() => import('@/components/cotizacion/DescargaPDF'))
-import type { CartItem } from '@/store/carritoStore'
 
 const schema = z.object({
   nombre: z.string().min(2, 'Ingresa tu nombre completo'),
   telefono: z.string().min(7, 'Ingresa un teléfono válido'),
   email: z.string().email('Ingresa un correo válido'),
   notas: z.string().optional(),
+  estado_republica: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -102,7 +104,7 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { nombre: '', telefono: '', email: '', notas: '' },
+    defaultValues: { nombre: '', telefono: '', email: '', notas: '', estado_republica: '' },
   })
 
   const handleClose = () => {
@@ -125,6 +127,7 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
         telefono: values.telefono,
         email: values.email,
         notas: values.notas || undefined,
+        estado_republica: values.estado_republica || undefined,
       }
       const snapshot = [...items]
       await enviarCotizacion(buildPayload(cliente, snapshot))
@@ -195,6 +198,29 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
                       <FormLabel>Correo electronico *</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="correo@ejemplo.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="estado_republica"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>¿En qué estado es la obra?</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <option value="">Prefiero no decirlo</option>
+                          {ESTADOS_MX.map((e) => (
+                            <option key={e} value={e}>
+                              {e}
+                            </option>
+                          ))}
+                        </select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

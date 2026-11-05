@@ -75,7 +75,7 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-r
   tipo="product"
   jsonld={[productoLd(origen, p, familia?.nombre ?? null), migas(origen, ruta)]}
 >
-  <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+  <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6" data-vista-producto={p.slug}>
     <nav aria-label="Ruta" class="text-sm text-muted-foreground">
       <ol class="flex flex-wrap items-center gap-1">
         {
@@ -153,6 +153,7 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-r
         <AgregarACotizacion
           client:load
           id={p.id}
+          slug={p.slug}
           nombre={p.nombre}
           imagen={galeria[0]?.url ?? null}
           ejes={p.ejes}

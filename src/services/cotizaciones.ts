@@ -6,6 +6,8 @@ export interface ClienteData {
   telefono: string
   email: string
   notas?: string
+  /** Estado de la República de la obra (opcional, INI-009). */
+  estado_republica?: string
 }
 
 export interface CotizacionPayload {
@@ -34,6 +36,9 @@ export interface CotizacionResponse {
     cantidad: number
     precio_unitario: number | null
   }[]
+  /** Monto de la venta ganada (interno). */
+  monto: number | null
+  fecha_primera_respuesta: string | null
 }
 
 export function buildPayload(cliente: ClienteData, items: CartItem[]): CotizacionPayload {
@@ -67,5 +72,11 @@ export async function actualizarEstado(
   estado: EstadoCotizacion
 ): Promise<CotizacionResponse> {
   const { data } = await client.patch<CotizacionResponse>(`/cotizaciones/${id}`, { estado })
+  return data
+}
+
+/** Monto de la venta ganada (KPI de INI-009; nunca es público). */
+export async function actualizarMonto(id: string, monto: number): Promise<CotizacionResponse> {
+  const { data } = await client.patch<CotizacionResponse>(`/cotizaciones/${id}`, { monto })
   return data
 }

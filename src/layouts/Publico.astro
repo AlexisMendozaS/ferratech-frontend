@@ -114,3 +114,22 @@ const anio = new Date().getFullYear()
   <div class="hidden md:block"><LeadWidget client:idle /></div>
   <Avisos client:only="react" />
 </Base>
+
+<script>
+  // KPIs del panel (INI-009): visita, producto visto y clic en un resultado de búsqueda.
+  import { registrarEvento } from '@/lib/eventos'
+
+  registrarEvento('visita', { ruta: location.pathname })
+  const producto = document.querySelector<HTMLElement>('[data-vista-producto]')?.dataset.vistaProducto
+  if (producto) registrarEvento('vista_producto', { producto })
+  document.addEventListener('click', (e) => {
+    const destino = e.target as HTMLElement
+    const tarjeta = destino.closest<HTMLElement>('[data-resultado]')
+    if (!tarjeta || !destino.closest('a')) return
+    registrarEvento('clic_busqueda', {
+      q: tarjeta.dataset.q,
+      producto: tarjeta.dataset.resultado,
+      posicion: Number(tarjeta.dataset.posicion) || undefined,
+    })
+  })
+</script>
