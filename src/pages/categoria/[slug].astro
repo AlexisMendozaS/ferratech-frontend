@@ -5,6 +5,7 @@ import TarjetaProducto from '@/componentes-astro/TarjetaProducto.astro'
 import Paginacion from '@/componentes-astro/Paginacion.astro'
 import { api } from '@/lib/api'
 import { LEMA, migas, recortar } from '@/lib/seo'
+import { tarjeta } from '@/lib/imagenes'
 
 const POR_PAGINA = 24
 const { slug = '' } = Astro.params
@@ -39,7 +40,7 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-r
   descripcion={categoria.meta_descripcion ?? recortar(`${categoria.descripcion ?? categoria.nombre}. ${LEMA}.`)}
   canonica={`/categoria/${categoria.slug}${pagina > 1 ? `?pagina=${pagina}` : ''}`}
   jsonld={[migas(origen, ruta)]}
-  precargar={resultado.productos[0]?.imagen?.url}
+  precargar={resultado.productos[0]?.imagen ? tarjeta(resultado.productos[0].imagen.url) : null}
 >
   <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
     <nav aria-label="Ruta" class="text-sm text-muted-foreground">

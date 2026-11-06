@@ -13,6 +13,7 @@ import BarraBusqueda from '@/islas/BarraBusqueda'
 import CotizaLoQueBuscas from '@/islas/CotizaLoQueBuscas'
 import { api, arbolDeCategorias } from '@/lib/api'
 import { LEMA, organizacion, sitioConBuscador } from '@/lib/seo'
+import { tarjeta } from '@/lib/imagenes'
 
 const POR_PAGINA = 24
 const parametros = Astro.url.searchParams
@@ -46,7 +47,7 @@ const descripcion = q
   jsonld={q ? [] : [organizacion(origen), sitioConBuscador(origen)]}
   busqueda={q}
   sinBuscador={!q}
-  precargar={q ? resultado.productos[0]?.imagen?.url : undefined}
+  precargar={q && resultado.productos[0]?.imagen ? tarjeta(resultado.productos[0].imagen.url) : null}
 >
   {
     !q && (

@@ -1,6 +1,7 @@
 ---
 /** Tarjeta de producto en listados: sin precio (DEC-012), con llamada a cotizar. */
 import type { ProductoTarjeta } from '@/types/producto'
+import { tarjeta } from '@/lib/imagenes'
 
 interface Props {
   producto: ProductoTarjeta
@@ -15,6 +16,7 @@ interface Props {
 const { producto: p, prioridad = false, busqueda, nivel = 3 } = Astro.props
 const Titulo = nivel === 2 ? 'h2' : 'h3'
 const href = `/producto/${p.slug}`
+const foto = p.imagen ? tarjeta(p.imagen.url) : null
 ---
 
 <article
@@ -25,9 +27,11 @@ const href = `/producto/${p.slug}`
 >
   <a href={href} class="relative block aspect-square bg-white" tabindex="-1" aria-hidden="true">
     {
-      p.imagen ? (
+      foto ? (
         <img
-          src={p.imagen.url}
+          src={foto.src}
+          srcset={foto.srcset}
+          sizes={foto.sizes}
           alt=""
           width="500"
           height="500"

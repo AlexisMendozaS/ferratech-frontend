@@ -14,6 +14,7 @@ import { LeadWidget } from '@/components/leads/LeadWidget'
 import { api, arbolDeCategorias } from '@/lib/api'
 import { LEMA, NOMBRE_SITIO } from '@/lib/seo'
 import { numeroWhatsApp } from '@/lib/contacto'
+import type { ImagenResponsiva } from '@/lib/imagenes'
 
 interface Props {
   titulo: string
@@ -24,7 +25,7 @@ interface Props {
   jsonld?: object[]
   tipo?: 'website' | 'product'
   /** Imagen que se ve primero (LCP): se pide desde el <head>, antes de que el navegador llegue a ella. */
-  precargar?: string | null
+  precargar?: ImagenResponsiva | null
   /** Texto del buscador del encabezado. */
   busqueda?: string
   /** En la portada el buscador grande va en el contenido, no en el encabezado. */

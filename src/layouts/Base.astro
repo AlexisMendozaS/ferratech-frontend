@@ -5,6 +5,7 @@
  */
 import '@/index.css'
 import { NOMBRE_SITIO } from '@/lib/seo'
+import type { ImagenResponsiva } from '@/lib/imagenes'
 
 interface Props {
   titulo: string
@@ -16,7 +17,7 @@ interface Props {
   jsonld?: object[]
   tipo?: 'website' | 'product'
   /** Imagen que se ve primero (LCP): se pide desde el <head>, antes de que el navegador llegue a ella. */
-  precargar?: string | null
+  precargar?: ImagenResponsiva | null
 }
 
 const { titulo, descripcion, canonica, noindex = false, imagen, jsonld = [], tipo = 'website', precargar } = Astro.props
@@ -35,7 +36,7 @@ const tituloCompleto = titulo.includes(NOMBRE_SITIO) ? titulo : `${titulo} | ${N
     <link rel="canonical" href={urlCanonica} />
     <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    {precargar && <link rel="preload" as="image" href={precargar} fetchpriority="high" />}
+    {precargar && <link rel="preload" as="image" href={precargar.src} imagesrcset={precargar.srcset} imagesizes={precargar.sizes} fetchpriority="high" />}
     <meta name="theme-color" content="#2C3E50" />
 
     <meta property="og:site_name" content={NOMBRE_SITIO} />

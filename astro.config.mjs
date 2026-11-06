@@ -7,6 +7,8 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { ANCHOS_IMAGENES, DOMINIOS_IMAGENES } from './src/lib/imagenes-origenes'
+
 const raiz = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
@@ -14,7 +16,8 @@ export default defineConfig({
   site: process.env.PUBLIC_SITE_URL || undefined,
   // Las páginas se generan por petición; el CDN de Vercel las guarda según su Cache-Control.
   output: 'server',
-  adapter: vercel(),
+  // Optimizador de imágenes de Vercel para las fotos del catálogo (`src/lib/imagenes.ts`).
+  adapter: vercel({ imagesConfig: { sizes: ANCHOS_IMAGENES, domains: DOMINIOS_IMAGENES, formats: ['image/webp'], minimumCacheTTL: 2592000 } }),
   integrations: [react({ compiler: true })],
   trailingSlash: 'never',
   devToolbar: { enabled: false },
