@@ -25,6 +25,9 @@ test('la búsqueda sin resultado del sitio aparece como demanda no cubierta en e
   await page.goto(`/?q=${encodeURIComponent(BUSQUEDA)}`)
   await expect(page.getByRole('heading', { level: 1 })).toContainText('No encontramos exactamente')
   expect((await visita).postDataJSON()).toMatchObject({ tipo: 'visita' })
+  // Una segunda búsqueda igual: con 2 la búsqueda queda por encima de las de corridas anteriores
+  // (cada una con 1), y el resumen, que muestra solo las primeras, siempre la incluye.
+  await page.goto(`/?q=${encodeURIComponent(BUSQUEDA)}`)
 
   // La cotización llega con el estado de la obra.
   const r = await request.post(`${BACKEND_URL}/cotizaciones/`, {
@@ -34,6 +37,7 @@ test('la búsqueda sin resultado del sitio aparece como demanda no cubierta en e
     },
   })
   expect(r.ok(), await r.text()).toBeTruthy()
+  const cotizacion = (await r.json()) as { id: string }
 
   // ── Como vendedor ──────────────────────────────────────────────────────────
   await page.addInitScript(`window.localStorage.setItem('ferratech-auth', ${JSON.stringify(sesionGuardada(TOKEN))})`)
@@ -46,4 +50,8 @@ test('la búsqueda sin resultado del sitio aparece como demanda no cubierta en e
   await expect(page.getByText(`Producto E2E ${SUFIJO}`)).toBeVisible()
   await expect(page.getByText('Jalisco')).toBeVisible()
   await captura(page, 'panel')
+
+  // Limpieza: la cotización de prueba no se queda en la base E2E.
+  const borrada = await request.delete(`${BACKEND_URL}/cotizaciones/${cotizacion.id}`, { headers: { Authorization: `Bearer ${TOKEN}` } })
+  expect(borrada.status()).toBe(204)
 })

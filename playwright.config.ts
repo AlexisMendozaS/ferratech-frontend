@@ -26,6 +26,8 @@ const backendEnv: Record<string, string> = {
   PYTHONDONTWRITEBYTECODE: '1',
   // Sin Voyage: la búsqueda usa solo texto y las pruebas no dependen de un servicio externo.
   VOYAGE_API_KEY: '',
+  // Producción admite 5 cotizaciones por minuto por cliente; la suite envía más desde la misma IP.
+  LIMITE_COTIZACIONES: '100/minute',
 }
 if (process.env.E2E_MONGO_URI) backendEnv.MONGO_URI = process.env.E2E_MONGO_URI
 
