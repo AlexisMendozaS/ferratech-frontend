@@ -29,3 +29,19 @@ test('el panel de administración sin sesión redirige al login', async ({ page 
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/login$/)
 })
+
+test('la página de cobertura lista los estados prioritarios y los declara a Google', async ({ page, request }) => {
+  await page.goto('/cobertura')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Hidalgo')
+  for (const estado of ['Hidalgo', 'Tlaxcala', 'Puebla', 'Veracruz', 'Ciudad de México', 'Estado de México']) {
+    await expect(page.getByRole('heading', { level: 3, name: estado })).toBeVisible()
+  }
+  await expect(page.getByText('se acuerdan con el vendedor').first()).toBeVisible()
+  const jsonld = await page.locator('script[type="application/ld+json"]').allTextContents()
+  const organizacion = jsonld.map((t) => JSON.parse(t)).find((d) => d['@type'] === 'Organization')
+  expect(organizacion.areaServed.map((a: { name: string }) => a.name)).toEqual(
+    expect.arrayContaining(['Hidalgo', 'Tlaxcala', 'Puebla', 'Veracruz', 'Ciudad de México', 'Estado de México']),
+  )
+  expect(await (await request.get('/sitemap.xml')).text()).toContain('/cobertura</loc>')
+  await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Cobertura de entregas' })).toBeVisible()
+})

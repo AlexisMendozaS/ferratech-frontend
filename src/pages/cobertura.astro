@@ -1,0 +1,119 @@
+---
+/**
+ * Cobertura de entregas (INI-008, DEC-018): los estados prioritarios en una sola página, con la
+ * política de entrega tal cual (se acuerda con el vendedor). Una página por estado con el mismo
+ * texto sería contenido repetido para Google; se harán cuando haya datos propios de cada estado.
+ */
+import { ClipboardList, MapPin, MessageCircle, Truck } from 'lucide-react'
+
+import Publico from '@/layouts/Publico.astro'
+import { api, arbolDeCategorias } from '@/lib/api'
+import { ESTADOS_PRIORITARIOS, POLITICA_ENTREGA } from '@/lib/cobertura'
+import { migas, organizacion } from '@/lib/seo'
+
+export const prerender = false
+
+const origen = (Astro.site?.origin ?? Astro.url.origin).replace(/\/$/, '')
+const secciones = arbolDeCategorias(await api.categorias())
+const nombres = ESTADOS_PRIORITARIOS.map((e) => e.nombre)
+const lista = `${nombres.slice(0, -1).join(', ')} y ${nombres.at(-1)}`
+
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
+---
+
+<Publico
+  titulo={`Materiales de construcción en ${lista}`}
+  descripcion={`Cotiza sin costo varilla, alambre, mallas, block, cemento y más para tu obra en ${lista}. Entrega acordada según disponibilidad y cantidad.`}
+  canonica="/cobertura"
+  jsonld={[
+    organizacion(origen),
+    migas(origen, [
+      { nombre: 'Inicio', ruta: '/' },
+      { nombre: 'Cobertura', ruta: '/cobertura' },
+    ]),
+  ]}
+>
+  <div class="mx-auto max-w-5xl px-4 pt-10 sm:px-6">
+    <h1 class="text-balance text-3xl font-bold leading-tight sm:text-4xl">Materiales de construcción en {lista}</h1>
+    <p class="mt-4 max-w-3xl text-pretty text-lg text-muted-foreground">
+      Cotizamos sin costo los materiales para tu obra y te conseguimos el mejor precio. Atendemos principalmente estos seis estados y también
+      cotizamos para el resto de México.
+    </p>
+
+    <section aria-labelledby="t-entrega" class="mt-8 flex gap-4 rounded-lg border bg-card p-5">
+      <Truck className="mt-0.5 size-6 shrink-0 text-secondary" aria-hidden="true" />
+      <div>
+        <h2 id="t-entrega" class="font-semibold">¿Cómo son las entregas?</h2>
+        <p class="mt-1 text-muted-foreground">{POLITICA_ENTREGA}</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-estados" class="mt-10">
+      <h2 id="t-estados" class="text-2xl font-bold">Dónde atendemos</h2>
+      <ul class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          ESTADOS_PRIORITARIOS.map((e) => (
+            <li class="rounded-lg border bg-card p-5">
+              <h3 class="flex items-center gap-2 font-semibold">
+                <MapPin className="size-4 text-secondary" aria-hidden="true" />
+                {e.nombre}
+              </h3>
+              <p class="mt-2 text-sm text-muted-foreground">
+                {e.nombre === 'Ciudad de México' ? 'Alcaldías como' : 'Ciudades como'} {e.ciudades.join(', ')}, entre otras.
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="t-como" class="mt-12">
+      <h2 id="t-como" class="text-2xl font-bold">Cómo cotizar para tu obra</h2>
+      <ol class="mt-5 grid gap-5 sm:grid-cols-3">
+        <li class="flex gap-3">
+          <ClipboardList className="size-6 shrink-0 text-secondary" aria-hidden="true" />
+          <div>
+            <p class="font-semibold">1. Arma tu cotización</p>
+            <p class="text-sm text-muted-foreground">Busca tus materiales y elige medidas y cantidades. Sin registro.</p>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <MapPin className="size-6 shrink-0 text-secondary" aria-hidden="true" />
+          <div>
+            <p class="font-semibold">2. Dinos dónde es la obra</p>
+            <p class="text-sm text-muted-foreground">Al enviarla, elige el estado: así el vendedor revisa la entrega desde el principio.</p>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <MessageCircle className="size-6 shrink-0 text-secondary" aria-hidden="true" />
+          <div>
+            <p class="font-semibold">3. Te respondemos</p>
+            <p class="text-sm text-muted-foreground">Con el precio, la disponibilidad y cómo y cuándo te entregamos.</p>
+          </div>
+        </li>
+      </ol>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="/#catalogo" class="rounded-md bg-secondary px-4 py-2 font-semibold text-secondary-foreground hover:bg-secondary/90">Ver el catálogo</a>
+        <a href="/cotizacion" class="rounded-md border bg-card px-4 py-2 font-semibold hover:bg-muted">Mi cotización</a>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-materiales" class="mt-12">
+      <h2 id="t-materiales" class="text-2xl font-bold">Materiales que cotizamos</h2>
+      <ul class="mt-4 flex flex-wrap gap-2">
+        {
+          secciones.map((s) => (
+            <li>
+              <a href={`/categoria/${s.slug}`} class="inline-block rounded-full border bg-card px-3 py-1 text-sm hover:bg-muted">
+                {s.nombre}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="mt-6 text-sm text-muted-foreground">
+        ¿Tienes más dudas? Revisa las <a href="/preguntas-frecuentes" class="font-medium text-primary underline">preguntas frecuentes</a>.
+      </p>
+    </section>
+  </div>
+</Publico>

@@ -16,6 +16,7 @@ export const GET: APIRoute = async ({ site, url }) => {
     { loc: '/', prioridad: '1.0' },
     ...categorias.map((c) => ({ loc: `/categoria/${c.slug}`, prioridad: c.padre ? '0.7' : '0.8' })),
     ...productos.map((p) => ({ loc: `/producto/${p.slug}`, prioridad: '0.9' })),
+    { loc: '/cobertura', prioridad: '0.6' },
     { loc: '/preguntas-frecuentes', prioridad: '0.3' },
   ]
   const cuerpo = `<?xml version="1.0" encoding="UTF-8"?>

@@ -2,6 +2,7 @@
  * Datos estructurados (schema.org) del sitio público. DEC-012: `Product` sin `brand` ni `offers`;
  * quien vende es FerraTech, como `Organization`.
  */
+import { ESTADOS_PRIORITARIOS } from '@/lib/cobertura'
 import type { ProductoPublico } from '@/types/producto'
 
 export const NOMBRE_SITIO = 'FerraTech'
@@ -14,7 +15,11 @@ export function organizacion(origen: string) {
     name: NOMBRE_SITIO,
     url: origen,
     logo: `${origen}/favicon.svg`,
-    areaServed: { '@type': 'Country', name: 'México' },
+    // Estados prioritarios (INI-008, DEC-018) y, en general, todo México.
+    areaServed: [
+      ...ESTADOS_PRIORITARIOS.map((e) => ({ '@type': 'State', name: e.nombre, containedInPlace: { '@type': 'Country', name: 'México' } })),
+      { '@type': 'Country', name: 'México' },
+    ],
   }
 }
 

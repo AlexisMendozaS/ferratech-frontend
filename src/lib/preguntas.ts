@@ -41,6 +41,21 @@ export const PREGUNTAS: SeccionPreguntas[] = [
     ],
   },
   {
+    titulo: 'Entregas',
+    items: [
+      {
+        pregunta: '¿En qué estados entregan?',
+        respuesta:
+          'Atendemos principalmente Hidalgo, Tlaxcala, Puebla, Veracruz, Ciudad de México y Estado de México, y cotizamos para el resto del país. Al enviar tu cotización indica el estado de la obra.',
+      },
+      {
+        pregunta: '¿Cuánto tarda la entrega y cuánto cuesta?',
+        respuesta:
+          'Las entregas y sus tiempos se acuerdan con el vendedor según la disponibilidad y la cantidad de material. Te lo confirmamos junto con tu cotización, sin costo.',
+      },
+    ],
+  },
+  {
     titulo: 'Cuenta y Plataforma',
     items: [
       {
