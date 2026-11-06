@@ -113,8 +113,8 @@ const anio = new Date().getFullYear()
   </footer>
 
   {whatsapp && <WhatsAppButton />}
-  <!-- En móvil la pestaña lateral tapa el contenido: ahí basta el botón de WhatsApp. -->
-  <div class="hidden md:block"><LeadWidget client:idle /></div>
+  <!-- En celular y tableta la pestaña lateral tapa el contenido: ahí basta el botón de WhatsApp. -->
+  <div class="hidden lg:block"><LeadWidget client:idle /></div>
   <Avisos client:only="react" />
 </Base>
 
