@@ -20,9 +20,9 @@ export default function CarritoPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-20 text-center">
         <ShoppingCart className="mx-auto mb-4 size-16 text-muted-foreground/40" />
-        <h1 className="mb-2 text-2xl font-bold">Tu carrito esta vacio</h1>
+        <h1 className="mb-2 text-2xl font-bold">Tu cotización está vacía</h1>
         <p className="mb-8 text-muted-foreground">
-          Agrega productos al carrito para solicitar una cotizacion.
+          Busca los materiales que necesitas y agrégalos para pedir tu cotización sin costo.
         </p>
         <Button asChild>
           <a href="/#catalogo">Explorar productos</a>
@@ -34,7 +34,7 @@ export default function CarritoPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">
-        Carrito{' '}
+        Mi cotización{' '}
         <Badge variant="secondary" className="ml-2 text-sm">
           {totalCount} {totalCount === 1 ? 'producto' : 'productos'}
         </Badge>
@@ -96,7 +96,7 @@ export default function CarritoPage() {
                   </div>
 
                   <button
-                    aria-label="Eliminar del carrito"
+                    aria-label={`Quitar ${item.nombre} de la cotización`}
                     className="ml-auto flex size-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
                     onClick={() => removeItem(item.id_producto, item.variante_seleccionada)}
                   >
@@ -117,7 +117,7 @@ export default function CarritoPage() {
             <span className="font-medium">{totalCount}</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Los precios seran confirmados por el agente de ventas al contactarte.
+            Un asesor te responderá con el precio y el tiempo de entrega.
           </p>
           <Separator />
           <Button
@@ -125,7 +125,7 @@ export default function CarritoPage() {
             size="lg"
             onClick={() => setModalOpen(true)}
           >
-            Solicitar cotizacion
+            Solicitar cotización
           </Button>
           <Button asChild variant="outline" className="w-full">
             <a href="/#catalogo">Seguir explorando</a>

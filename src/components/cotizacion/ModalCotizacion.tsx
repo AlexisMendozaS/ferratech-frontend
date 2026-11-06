@@ -73,15 +73,15 @@ function SuccessScreen({
       <CheckCircle className="size-12 text-green-500" />
       <div>
         <p className="text-base font-semibold text-foreground">
-          ¡Cotizacion enviada!
+          ¡Cotización enviada!
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Un agente de ventas se pondra en contacto contigo pronto.
+          Un asesor se pondrá en contacto contigo pronto.
         </p>
       </div>
 
       {/* La librería de PDF pesa más de 1 MB: se descarga solo al llegar a esta pantalla. */}
-      <Suspense fallback={<Button variant="outline" className="gap-2" disabled><Loader2 className="size-4 animate-spin" />Preparando PDF...</Button>}>
+      <Suspense fallback={<Button variant="outline" className="gap-2" disabled><Loader2 className="size-4 animate-spin" />Preparando PDF…</Button>}>
         <DescargaPDF cliente={cliente} items={items} fileName={buildFilename(cliente.nombre)} />
       </Suspense>
 
@@ -135,10 +135,10 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
       setClienteData(cliente)
       setItemsSnapshot(snapshot)
       setSubmitted(true)
-      toast.success('Cotizacion enviada correctamente.')
+      toast.success('Cotización enviada correctamente.')
       onSuccess?.()
     } catch {
-      toast.error('No se pudo enviar la cotizacion. Intentalo de nuevo.')
+      toast.error('No se pudo enviar la cotización. Inténtalo de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -156,9 +156,9 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Solicitar cotizacion</DialogTitle>
+              <DialogTitle>Solicitar cotización</DialogTitle>
               <DialogDescription>
-                Completa tus datos y un agente de ventas se pondra en contacto contigo.
+                Completa tus datos y un asesor te responderá con el precio y la entrega.
               </DialogDescription>
             </DialogHeader>
 
@@ -171,7 +171,7 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
                     <FormItem>
                       <FormLabel>Nombre completo *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Juan Perez" {...field} />
+                        <Input placeholder="Juan Pérez" autoComplete="name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -182,9 +182,9 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
                   name="telefono"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefono *</FormLabel>
+                      <FormLabel>Teléfono *</FormLabel>
                       <FormControl>
-                        <Input placeholder="+52 555 123 4567" {...field} />
+                        <Input placeholder="55 1234 5678" type="tel" autoComplete="tel" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -195,9 +195,9 @@ export function ModalCotizacion({ open, onOpenChange, onSuccess }: Props) {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Correo electronico *</FormLabel>
+                      <FormLabel>Correo electrónico *</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="correo@ejemplo.com" {...field} />
+                        <Input type="email" placeholder="correo@ejemplo.com" autoComplete="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
