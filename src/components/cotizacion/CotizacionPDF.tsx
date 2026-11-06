@@ -8,6 +8,7 @@ import {
 
 import type { CartItem } from '@/store/carritoStore'
 import type { ClienteData } from '@/services/cotizaciones'
+import { DOMINIO_SITIO } from '@/lib/sitio'
 
 /* ── Estilos ──────────────────────────────────────────────── */
 const styles = StyleSheet.create({
@@ -268,7 +269,7 @@ export function CotizacionPDF({ cliente, items, fecha, folio }: CotizacionPDFPro
 
         {/* Footer */}
         <Text style={styles.footer}>
-          FerraTech — Ferretería y Materiales | ferratech.com.mx | Todos los derechos reservados
+          FerraTech — Ferretería y Materiales | {DOMINIO_SITIO} | Todos los derechos reservados
         </Text>
       </Page>
     </Document>

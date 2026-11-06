@@ -35,6 +35,8 @@ const tituloCompleto = titulo.includes(NOMBRE_SITIO) ? titulo : `${titulo} | ${N
     {descripcion && <meta name="description" content={descripcion} />}
     <link rel="canonical" href={urlCanonica} />
     <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
+    {/* Propiedad de Search Console de https://ferratech.vercel.app (INI-008). Es pública por diseño. */}
+    <meta name="google-site-verification" content="z6U_JSegaH27Nj3wtAe7hxEErtNi4LCyW_V2ZALGclE" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {precargar && <link rel="preload" as="image" href={precargar.src} imagesrcset={precargar.srcset} imagesizes={precargar.sizes} fetchpriority="high" />}
     <meta name="theme-color" content="#2C3E50" />

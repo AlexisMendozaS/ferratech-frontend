@@ -1,4 +1,4 @@
-
+import { DOMINIO_SITIO } from '@/lib/sitio'
 const AGENT_EMAIL = 'armandomendoza988@gmail.com'
 const LAST_UPDATED = '7 de julio de 2026'
 
@@ -34,7 +34,7 @@ export default function AvisoPrivacidadPage() {
                 {AGENT_EMAIL}
               </a>
               , soy el responsable del tratamiento de los datos personales que usted nos proporciona
-              a través del sitio web ferratech.com.mx (en adelante, "el Sitio").
+              a través del sitio web {DOMINIO_SITIO} (en adelante, "el Sitio").
             </p>
           </Section>
 

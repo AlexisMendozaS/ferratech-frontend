@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import type { Categoria } from '@/types/categoria'
 import { Campo, Seccion, Seleccion } from './campos'
 import type { FormProducto } from './modelo'
+import { DOMINIO_SITIO } from '@/lib/sitio'
 
 export function PestanaGeneral({ categorias, slugActual }: { categorias: Categoria[]; slugActual?: string }) {
   const { register, control, setValue } = useFormContext<FormProducto>()
@@ -34,7 +35,7 @@ export function PestanaGeneral({ categorias, slugActual }: { categorias: Categor
           }
         >
           <div className="flex items-center rounded-md border border-input text-sm shadow-xs focus-within:ring-[3px] focus-within:ring-ring/50">
-            <span className="select-none pl-2.5 text-muted-foreground">ferratech.com.mx/producto/</span>
+            <span className="select-none pl-2.5 text-muted-foreground">{DOMINIO_SITIO}/producto/</span>
             <input id="slug" {...register('slug')} placeholder="se-genera-del-nombre" className="h-9 flex-1 bg-transparent pr-2.5 outline-none" />
           </div>
           {slugActual && slug && slug !== slugActual && (

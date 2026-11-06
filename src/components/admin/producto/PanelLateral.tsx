@@ -2,10 +2,9 @@ import { useFormContext, useWatch } from 'react-hook-form'
 import { CheckCircle2, CircleAlert } from 'lucide-react'
 
 import { ProductCard } from '@/components/productos/ProductCard'
+import { DOMINIO_SITIO } from '@/lib/sitio'
 import { faltantesParaPublicar, type FormProducto } from './modelo'
 
-// Dominio del sitio: el definitivo si está configurado; si no, el de esta misma página.
-const DOMINIO = (import.meta.env.PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/^https?:\/\//, '').replace(/\/$/, '')
 
 const slugify = (t: string) =>
   t.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -37,7 +36,7 @@ export function PanelLateral() {
       <section className="rounded-xl border border-border bg-card p-4 shadow-xs">
         <h2 className="mb-3 text-sm font-semibold">Así se verá en Google</h2>
         <div className="font-[arial,sans-serif]">
-          <p className="truncate text-xs text-[#4d5156]">{DOMINIO} › producto › {slug}</p>
+          <p className="truncate text-xs text-[#4d5156]">{DOMINIO_SITIO} › producto › {slug}</p>
           <p className="mt-0.5 line-clamp-1 text-lg leading-snug text-[#1a0dab]">{titulo}</p>
           <p className="mt-0.5 line-clamp-2 text-sm text-[#4d5156]">{descripcion}</p>
         </div>
