@@ -80,3 +80,8 @@ export async function actualizarMonto(id: string, monto: number): Promise<Cotiza
   const { data } = await client.patch<CotizacionResponse>(`/cotizaciones/${id}`, { monto })
   return data
 }
+
+/** Borra una cotización (spam o prueba). No se puede deshacer. */
+export async function eliminarCotizacion(id: string): Promise<void> {
+  await client.delete(`/cotizaciones/${id}`)
+}

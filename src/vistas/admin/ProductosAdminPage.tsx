@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { type ColumnDef } from '@tanstack/react-table'
-import { CircleAlert, Pencil, Plus, Trash2 } from 'lucide-react'
+import { CircleAlert, Package, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import {
@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
+import { CargandoFilas, EncabezadoPanel, EstadoError, EstadoVacio, EtiquetaEstado, FiltroChips, type Tono } from '@/components/admin/panel'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { useAsyncData } from '@/hooks/useAsyncData'
@@ -30,10 +30,10 @@ const ESTADOS: { valor: EstadoProducto | ''; texto: string }[] = [
   { valor: 'archivado', texto: 'Archivados' },
 ]
 
-const CLASE_ESTADO: Record<EstadoProducto, string> = {
-  publicado: 'bg-emerald-100 text-emerald-800',
-  borrador: 'bg-muted text-muted-foreground',
-  archivado: 'bg-zinc-200 text-zinc-700',
+const ESTADO: Record<EstadoProducto, { texto: string; tono: Tono }> = {
+  publicado: { texto: 'Publicado', tono: 'exito' },
+  borrador: { texto: 'Borrador', tono: 'nuevo' },
+  archivado: { texto: 'Archivado', tono: 'neutro' },
 }
 
 function columnas(categoria: (id: string | null) => string, onEdit: (id: string) => void, onDelete: (p: ProductoAdmin) => void): ColumnDef<ProductoAdmin>[] {
@@ -44,19 +44,23 @@ function columnas(categoria: (id: string | null) => string, onEdit: (id: string)
       cell: ({ row }) => {
         const img = row.original.galeria[0]
         return img ? (
-          <img src={img.url} alt="" className="size-10 rounded-md border object-cover" />
+          <img src={img.url} alt="" className="size-10 rounded-md border bg-white object-contain" />
         ) : (
           <div className="flex size-10 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">—</div>
         )
       },
       enableSorting: false,
+      meta: { className: 'hidden sm:table-cell w-14' },
     },
     {
       accessorKey: 'nombre',
       header: 'Producto',
+      meta: { className: 'whitespace-normal min-w-40' },
       cell: ({ row }) => (
         <div className="flex flex-col">
-          <span className="font-medium">{row.original.nombre}</span>
+          <button type="button" className="text-left font-medium hover:underline" onClick={() => onEdit(row.original.id)}>
+            {row.original.nombre}
+          </button>
           <span className="text-xs text-muted-foreground">
             {row.original.variantes.length} variante{row.original.variantes.length === 1 ? '' : 's'}
             {row.original.variantes[0] && ` · ${row.original.variantes[0].sku}${row.original.variantes.length > 1 ? '…' : ''}`}
@@ -68,6 +72,7 @@ function columnas(categoria: (id: string | null) => string, onEdit: (id: string)
       id: 'categoria',
       header: 'Categoría',
       cell: ({ row }) => <span className="text-sm">{categoria(row.original.categoria_principal)}</span>,
+      meta: { className: 'hidden md:table-cell' },
     },
     {
       accessorKey: 'estado',
@@ -75,11 +80,12 @@ function columnas(categoria: (id: string | null) => string, onEdit: (id: string)
       cell: ({ row }) => {
         const p = row.original
         return (
-          <div className="flex items-center gap-1.5">
-            <Badge className={CLASE_ESTADO[p.estado]}>{p.estado}</Badge>
-            {p.faltantes_para_publicar.length > 0 && (
-              <span title={`Para publicar falta: ${p.faltantes_para_publicar.join(', ')}`} className="flex items-center gap-0.5 text-xs text-amber-700">
-                <CircleAlert className="size-3.5" /> {p.faltantes_para_publicar.length}
+          <div className="flex flex-col items-start gap-1">
+            <EtiquetaEstado texto={ESTADO[p.estado].texto} tono={ESTADO[p.estado].tono} />
+            {p.estado !== 'publicado' && p.faltantes_para_publicar.length > 0 && (
+              <span title={`Para publicar falta: ${p.faltantes_para_publicar.join(', ')}`} className="flex items-center gap-1 text-xs text-amber-800">
+                <CircleAlert className="size-3.5" aria-hidden />
+                Faltan {p.faltantes_para_publicar.length} dato{p.faltantes_para_publicar.length === 1 ? '' : 's'}
               </span>
             )}
           </div>
@@ -132,10 +138,10 @@ export default function ProductosAdminPage() {
   const [version, setVersion] = useState(0)
 
   // TODO(INI-009): paginar en el servidor cuando el catálogo pase de 100 productos.
-  const { data, loading, error } = useAsyncData(
-    () => adminProductosService.listar({ limit: 100, estado: estado || undefined }),
-    `admin-productos:${estado}:${version}`,
-  )
+  // Se pide todo una vez y se filtra aquí: así los filtros muestran cuántos hay de cada estado.
+  const { data, loading, error } = useAsyncData(() => adminProductosService.listar({ limit: 100 }), `admin-productos:${version}`)
+  const total = (e: EstadoProducto) => data?.productos.filter((p) => p.estado === e).length
+  const visibles = (data?.productos ?? []).filter((p) => !estado || p.estado === estado)
   const { data: categorias } = useAsyncData(() => categoriasService.listar(true), 'admin-categorias')
   const nombreCategoria = (id: string | null) => (id && categorias?.find((c) => c.id === id)?.nombre) || '—'
 
@@ -150,37 +156,43 @@ export default function ProductosAdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {data ? `${data.total} producto${data.total === 1 ? '' : 's'}` : 'Catálogo'} · solo los publicados se ven en el sitio.
-          </p>
-        </div>
-        <Button onClick={() => navigate('/admin/productos/nuevo')}>
-          <Plus className="size-4" /> Nuevo producto
-        </Button>
-      </header>
-
-      <div className="flex flex-wrap gap-1" role="tablist" aria-label="Filtrar por estado">
-        {ESTADOS.map((e) => (
-          <Button key={e.valor} role="tab" aria-selected={estado === e.valor} variant={estado === e.valor ? 'secondary' : 'ghost'} size="sm" onClick={() => setEstado(e.valor)}>
-            {e.texto}
+    <div className="space-y-5">
+      <EncabezadoPanel
+        titulo="Productos"
+        descripcion="Solo los publicados se ven en el sitio. A un borrador le falta lo que dice debajo de su estado."
+        acciones={
+          <Button onClick={() => navigate('/admin/productos/nuevo')}>
+            <Plus className="size-4" /> Nuevo producto
           </Button>
-        ))}
-      </div>
+        }
+      />
+
+      <FiltroChips
+        etiqueta="Filtrar por estado"
+        valor={estado}
+        onCambio={setEstado}
+        opciones={ESTADOS.map((e) => ({ valor: e.valor, texto: e.texto, total: e.valor ? total(e.valor) : data?.productos.length }))}
+      />
 
       {error ? (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          No se pudo cargar el catálogo. Verifica la conexión con el servidor.
-        </p>
+        <EstadoError texto="No se pudo cargar el catálogo. Revisa la conexión con el servidor." onReintentar={() => setVersion((v) => v + 1)} />
       ) : loading && !data ? (
-        <div className="flex h-64 items-center justify-center text-muted-foreground">Cargando catálogo…</div>
+        <CargandoFilas />
+      ) : data && data.productos.length === 0 ? (
+        <EstadoVacio
+          icono={Package}
+          titulo="El catálogo está vacío"
+          texto="Da de alta el primer producto. Se publica cuando tiene categoría, descripciones, una imagen y una variante."
+          accion={
+            <Button onClick={() => navigate('/admin/productos/nuevo')}>
+              <Plus className="size-4" /> Nuevo producto
+            </Button>
+          }
+        />
       ) : (
         <DataTable
           columns={columnas(nombreCategoria, (id) => navigate(`/admin/productos/${id}/editar`), eliminar)}
-          data={data?.productos ?? []}
+          data={visibles}
           searchColumn="nombre"
           searchPlaceholder="Buscar por nombre…"
         />

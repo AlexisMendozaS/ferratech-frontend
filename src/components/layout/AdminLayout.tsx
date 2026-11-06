@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   FileText,
@@ -54,7 +54,7 @@ const NAV_SECTIONS: NavSection[] = [
         badgeKey: 'cotizaciones_pendientes',
       },
       {
-        label: 'Leads',
+        label: 'Contactos',
         href: '/admin/leads',
         icon: Users,
         end: false,
@@ -78,7 +78,7 @@ const NAV_SECTIONS: NavSection[] = [
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null
   return (
-    <span className="ml-auto rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold leading-none text-accent-foreground">
+    <span className="ml-auto rounded-full bg-secondary px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums text-secondary-foreground">
       {count > 99 ? '99+' : count}
     </span>
   )
@@ -104,8 +104,8 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
       <div className="flex h-14 items-center gap-2 px-4 font-bold text-lg tracking-wide text-primary-foreground">
         <Wrench className="size-5 text-accent" />
         <span>FerraTech</span>
-        <span className="ml-1 rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent">
-          Admin
+        <span className="ml-1 rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary-foreground">
+          Panel
         </span>
       </div>
 
@@ -115,7 +115,7 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
         {NAV_SECTIONS.map((section) => (
           <div key={section.title}>
-            <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/40">
+            <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-widest text-primary-foreground/60">
               {section.title}
             </p>
             <ul className="space-y-0.5">
@@ -130,10 +130,10 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
                       end={item.end}
                       onClick={onNav}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        `relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
                           isActive
-                            ? 'bg-accent/20 text-accent'
-                            : 'text-primary-foreground/70 hover:bg-white/10 hover:text-primary-foreground'
+                            ? 'bg-white/15 text-white before:absolute before:inset-y-1.5 before:left-0 before:w-1 before:rounded-full before:bg-secondary'
+                            : 'text-primary-foreground/80 hover:bg-white/10 hover:text-primary-foreground'
                         }`
                       }
                     >
@@ -153,16 +153,17 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 
       {/* Footer: ir a tienda + logout */}
       <div className="p-3 space-y-0.5">
-        <Link
-          to="/"
-          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/50 hover:bg-white/10 hover:text-primary-foreground transition-colors"
+        {/* Enlace normal: el sitio lo sirve Astro, no el enrutador del panel (con <Link> volvía a /admin). */}
+        <a
+          href="/"
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/75 hover:bg-white/10 hover:text-primary-foreground transition-colors"
         >
           <ArrowLeft className="size-4 shrink-0" />
-          Ir a la tienda
-        </Link>
+          Ver el sitio
+        </a>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/50 hover:bg-white/10 hover:text-primary-foreground transition-colors"
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/75 hover:bg-white/10 hover:text-primary-foreground transition-colors"
         >
           <LogOut className="size-4 shrink-0" />
           Cerrar sesión
@@ -222,15 +223,18 @@ export function AdminLayout() {
           <div className="flex items-center gap-2 font-bold text-base tracking-wide text-foreground">
             <Wrench className="size-4 text-accent" />
             <span>FerraTech</span>
-            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent">
-              Admin
+            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Panel
             </span>
           </div>
         </header>
 
         {/* Área de contenido con scroll */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+          {/* Mismo ancho y márgenes en todas las pantallas del panel. */}
+          <div className="mx-auto w-full max-w-7xl">
+            <Outlet />
+          </div>
         </main>
       </div>
 

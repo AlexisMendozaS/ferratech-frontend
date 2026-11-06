@@ -40,3 +40,8 @@ export async function actualizarEstadoLead(
   const { data } = await client.patch<LeadResponse>(`/admin/leads/${id}`, { estado })
   return data
 }
+
+/** Borra un contacto (spam o prueba). No se puede deshacer. */
+export async function eliminarLead(id: string): Promise<void> {
+  await client.delete(`/admin/leads/${id}`)
+}

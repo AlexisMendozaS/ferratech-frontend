@@ -5,9 +5,9 @@
  */
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Clock, Minus, RefreshCw, SearchX } from 'lucide-react'
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Clock, Minus, SearchX } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import { EncabezadoPanel, EstadoError } from '@/components/admin/panel'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { cn } from '@/lib/utils'
@@ -148,12 +148,11 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Resumen</h1>
-          <p className="text-sm text-muted-foreground">Qué atender hoy y qué está trayendo ventas.</p>
-        </div>
-        <div role="group" aria-label="Periodo" className="inline-flex rounded-lg border bg-card p-0.5">
+      <EncabezadoPanel
+        titulo="Resumen"
+        descripcion="Qué atender hoy y qué está trayendo ventas."
+        acciones={
+          <div role="group" aria-label="Periodo" className="inline-flex rounded-lg border bg-card p-0.5">
           {PERIODOS.map((p) => (
             <button
               key={p}
@@ -165,16 +164,12 @@ export default function AdminDashboardPage() {
               {p} días
             </button>
           ))}
-        </div>
-      </header>
+          </div>
+        }
+      />
 
       {error && !k ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-10 text-center">
-          <p className="font-medium">No se pudieron cargar los indicadores.</p>
-          <Button variant="outline" onClick={() => setRecarga((n) => n + 1)} className="gap-2">
-            <RefreshCw className="size-4" /> Reintentar
-          </Button>
-        </div>
+        <EstadoError texto="No se pudieron cargar los indicadores. Revisa la conexión con el servidor." onReintentar={() => setRecarga((n) => n + 1)} />
       ) : !k ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }, (_, i) => (

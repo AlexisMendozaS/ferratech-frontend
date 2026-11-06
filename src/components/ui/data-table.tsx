@@ -7,6 +7,7 @@ import {
   useReactTable,
   type ColumnDef,
   type ColumnFiltersState,
+  type RowData,
   type SortingState,
 } from '@tanstack/react-table'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
@@ -22,6 +23,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
+// `meta.className` en una columna se aplica a su encabezado y a sus celdas (p. ej. ocultarla en el celular).
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string
+  }
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -69,18 +78,18 @@ export function DataTable<TData, TValue>({
             onChange={(e) =>
               table.getColumn(searchColumn)?.setFilterValue(e.target.value)
             }
-            className="pl-8"
+            className="bg-card pl-8"
           />
         </div>
       )}
 
-      <div className="rounded-xl border overflow-hidden">
+      <div className="overflow-x-auto rounded-xl border bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted/40 hover:bg-muted/40">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className={header.column.columnDef.meta?.className}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -94,7 +103,7 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -126,6 +135,7 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="icon-sm"
             onClick={() => table.previousPage()}
+            aria-label="Página anterior"
             disabled={!table.getCanPreviousPage()}
           >
             <ChevronLeft className="size-4" />
@@ -134,6 +144,7 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="icon-sm"
             onClick={() => table.nextPage()}
+            aria-label="Página siguiente"
             disabled={!table.getCanNextPage()}
           >
             <ChevronRight className="size-4" />

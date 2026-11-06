@@ -1,322 +1,318 @@
+/**
+ * Contactos (INI-009): personas que dejaron sus datos en el sitio sin enviar una cotización
+ * (pestaña lateral, ventana emergente, WhatsApp). Se les da seguimiento hasta cerrarlos.
+ */
 import { useEffect, useState } from 'react'
-import { ChevronDown, Loader2, Phone, Users, X } from 'lucide-react'
+import { ChevronRight, Loader2, Mail, MessageCircle, Phone, Search, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
-  actualizarEstadoLead,
-  listarLeads,
-  type EstadoLead,
-  type LeadResponse,
-} from '@/services/leads'
+  CargandoFilas,
+  EncabezadoPanel,
+  EstadoError,
+  EstadoVacio,
+  EtiquetaEstado,
+  FiltroChips,
+  MarcoTabla,
+  type Tono,
+} from '@/components/admin/panel'
+import { fmtFecha, fmtFechaHora, haceCuanto } from '@/lib/fechas'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Seleccion } from '@/components/admin/producto/campos'
+import { numeroWhatsApp } from '@/lib/contacto'
+import { actualizarEstadoLead, eliminarLead, listarLeads, type EstadoLead, type LeadResponse } from '@/services/leads'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers de fecha
-// ─────────────────────────────────────────────────────────────────────────────
-
-const fmtFecha = (iso: string) =>
-  new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }).format(
-    new Date(iso)
-  )
-
-const fmtFechaHora = (iso: string) =>
-  new Intl.DateTimeFormat('es-MX', {
-    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  }).format(new Date(iso))
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Config de estados y orígenes
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ESTADO_CONFIG: Record<EstadoLead, { label: string; color: string; next: EstadoLead[] }> = {
-  nuevo: {
-    label: 'Nuevo',
-    color: 'bg-blue-100 text-blue-800',
-    next: ['contactado'],
-  },
-  contactado: {
-    label: 'Contactado',
-    color: 'bg-yellow-100 text-yellow-800',
-    next: ['cerrado'],
-  },
-  cerrado: {
-    label: 'Cerrado',
-    color: 'bg-green-100 text-green-800',
-    next: [],
-  },
+const ESTADO: Record<EstadoLead, { texto: string; tono: Tono; siguientes: EstadoLead[] }> = {
+  nuevo: { texto: 'Nuevo', tono: 'nuevo', siguientes: ['contactado'] },
+  contactado: { texto: 'Contactado', tono: 'proceso', siguientes: ['cerrado'] },
+  cerrado: { texto: 'Cerrado', tono: 'exito', siguientes: [] },
 }
 
-const ORIGEN_LABELS: Record<string, string> = {
-  popup: 'Pop-up',
+const ORIGEN: Record<string, string> = {
+  popup: 'Ventana emergente',
   whatsapp: 'WhatsApp',
-  widget_lateral: 'Widget lateral',
-  footer_newsletter: 'Newsletter',
+  widget_lateral: 'Pestaña «Contacto»',
+  footer_newsletter: 'Boletín',
+  busqueda: 'Búsqueda sin resultado',
 }
 
-const FILTROS_ESTADO: { label: string; value: EstadoLead | 'todos' }[] = [
-  { label: 'Todos', value: 'todos' },
-  { label: 'Nuevos', value: 'nuevo' },
-  { label: 'Contactados', value: 'contactado' },
-  { label: 'Cerrados', value: 'cerrado' },
-]
+type Filtro = EstadoLead | 'todos'
 
-const ORIGENES_DISPONIBLES = ['popup', 'whatsapp', 'widget_lateral', 'footer_newsletter']
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Badge de estado
-// ─────────────────────────────────────────────────────────────────────────────
-
-function EstadoBadge({ estado }: { estado: EstadoLead }) {
-  const cfg = ESTADO_CONFIG[estado]
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cfg.color}`}>
-      {cfg.label}
-    </span>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Modal de detalle
-// ─────────────────────────────────────────────────────────────────────────────
-
-function DetalleLead({
-  lead,
-  onClose,
-  onEstadoChange,
+function DetalleContacto({
+  contacto,
+  onCerrar,
+  onCambio,
+  onBorrado,
 }: {
-  lead: LeadResponse
-  onClose: () => void
-  onEstadoChange: (id: string, estado: EstadoLead) => void
+  contacto: LeadResponse
+  onCerrar: () => void
+  onCambio: (c: LeadResponse) => void
+  onBorrado: (id: string) => void
 }) {
-  const [loading, setLoading] = useState(false)
-  const cfg = ESTADO_CONFIG[lead.estado]
+  const [guardando, setGuardando] = useState(false)
+  const estado = ESTADO[contacto.estado]
+  const whatsapp = numeroWhatsApp(contacto.telefono)
 
-  const handleEstado = async (nuevoEstado: EstadoLead) => {
-    setLoading(true)
+  const cambiarEstado = async (nuevo: EstadoLead) => {
+    setGuardando(true)
     try {
-      await actualizarEstadoLead(lead.id, nuevoEstado)
-      onEstadoChange(lead.id, nuevoEstado)
-      toast.success(`Estado actualizado a "${ESTADO_CONFIG[nuevoEstado].label}"`)
+      onCambio(await actualizarEstadoLead(contacto.id, nuevo))
+      toast.success(`Marcado como «${ESTADO[nuevo].texto}»`)
     } catch {
       toast.error('No se pudo actualizar el estado')
     } finally {
-      setLoading(false)
+      setGuardando(false)
+    }
+  }
+
+  const borrar = async () => {
+    try {
+      await eliminarLead(contacto.id)
+      onBorrado(contacto.id)
+      toast.success('Contacto borrado')
+    } catch {
+      toast.error('No se pudo borrar el contacto')
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md rounded-xl bg-card border shadow-xl overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <div>
-            <p className="font-semibold text-foreground">{lead.nombre}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{fmtFechaHora(lead.fecha)}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1 text-muted-foreground hover:bg-muted transition-colors"
-          >
-            <X className="size-4" />
-          </button>
+    <Dialog open onOpenChange={(abierto) => !abierto && onCerrar()}>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex flex-wrap items-center gap-2">
+            {contacto.nombre} <EtiquetaEstado texto={estado.texto} tono={estado.tono} />
+          </DialogTitle>
+          <DialogDescription>
+            Llegó por {ORIGEN[contacto.origen] ?? contacto.origen} el {fmtFechaHora(contacto.fecha)}
+          </DialogDescription>
+        </DialogHeader>
+
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-lg border bg-muted/30 p-3 text-sm">
+          <dt className="text-muted-foreground">Teléfono</dt>
+          <dd className="font-medium">{contacto.telefono}</dd>
+          <dt className="text-muted-foreground">Correo</dt>
+          <dd className="break-all font-medium">{contacto.email || '—'}</dd>
+          {contacto.notas && (
+            <>
+              <dt className="text-muted-foreground">Notas</dt>
+              <dd>{contacto.notas}</dd>
+            </>
+          )}
+        </dl>
+
+        <div className="flex flex-wrap gap-2">
+          {whatsapp && (
+            <Button asChild size="sm" className="bg-[#1f8f4e] text-white hover:bg-[#1a7a43]">
+              <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
+                <MessageCircle className="size-3.5" /> WhatsApp
+              </a>
+            </Button>
+          )}
+          <Button asChild size="sm" variant="outline">
+            <a href={`tel:${contacto.telefono}`}>
+              <Phone className="size-3.5" /> Llamar
+            </a>
+          </Button>
+          {contacto.email && (
+            <Button asChild size="sm" variant="outline">
+              <a href={`mailto:${contacto.email}`}>
+                <Mail className="size-3.5" /> Correo
+              </a>
+            </Button>
+          )}
         </div>
 
-        {/* Datos */}
-        <div className="p-5 space-y-4">
-          <div className="rounded-lg border bg-muted/30 p-3 space-y-1.5 text-sm">
-            <p><span className="text-muted-foreground">Teléfono:</span> <span className="font-medium">{lead.telefono}</span></p>
-            <p><span className="text-muted-foreground">Email:</span> <span className="font-medium">{lead.email || '—'}</span></p>
-            <p><span className="text-muted-foreground">Origen:</span> <span className="font-medium">{ORIGEN_LABELS[lead.origen] ?? lead.origen}</span></p>
-            {lead.notas && (
-              <p><span className="text-muted-foreground">Notas:</span> {lead.notas}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Footer: estado + acciones */}
-        <div className="border-t px-5 py-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Estado:</span>
-            <EstadoBadge estado={lead.estado} />
-          </div>
-
-          {cfg.next.length > 0 && (
+        <section className="space-y-3 border-t pt-4">
+          {estado.siguientes.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {cfg.next.map((estado) => (
-                <Button
-                  key={estado}
-                  size="sm"
-                  variant="outline"
-                  disabled={loading}
-                  onClick={() => handleEstado(estado)}
-                >
-                  {loading && <Loader2 className="size-3 animate-spin mr-1" />}
-                  Marcar como {ESTADO_CONFIG[estado].label}
+              {estado.siguientes.map((s) => (
+                <Button key={s} size="sm" disabled={guardando} onClick={() => cambiarEstado(s)}>
+                  {guardando && <Loader2 className="size-3 animate-spin" />}
+                  Marcar como {ESTADO[s].texto.toLowerCase()}
                 </Button>
               ))}
             </div>
           )}
-
-          <a
-            href={`tel:${lead.telefono}`}
-            className="flex items-center gap-2 text-sm text-primary hover:underline"
-          >
-            <Phone className="size-3.5" />
-            Llamar a {lead.nombre}
-          </a>
-        </div>
-      </div>
-    </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive">
+                <Trash2 className="size-3.5" /> Borrar (spam o prueba)
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Borrar el contacto {contacto.nombre}?</AlertDialogTitle>
+                <AlertDialogDescription>Se borra para siempre y deja de contar en el resumen. Úsalo solo para spam o pruebas.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={borrar}>
+                  Borrar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </section>
+      </DialogContent>
+    </Dialog>
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Page
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function AdminLeadsPage() {
-  const [leads, setLeads] = useState<LeadResponse[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filtroEstado, setFiltroEstado] = useState<EstadoLead | 'todos'>('todos')
-  const [filtroOrigen, setFiltroOrigen] = useState<string>('todos')
+  const [contactos, setContactos] = useState<LeadResponse[] | null>(null)
+  const [error, setError] = useState(false)
+  const [intento, setIntento] = useState(0)
+  const [filtro, setFiltro] = useState<Filtro>('todos')
+  const [origen, setOrigen] = useState('todos')
+  const [busqueda, setBusqueda] = useState('')
   const [seleccionado, setSeleccionado] = useState<LeadResponse | null>(null)
 
   useEffect(() => {
-    listarLeads()
-      .then(setLeads)
-      .catch(() => toast.error('No se pudieron cargar los leads'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const handleEstadoChange = (id: string, nuevoEstado: EstadoLead) => {
-    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, estado: nuevoEstado } : l)))
-    if (seleccionado?.id === id) {
-      setSeleccionado((prev) => (prev ? { ...prev, estado: nuevoEstado } : null))
+    let vigente = true
+    listarLeads().then(
+      (lista) => {
+        if (!vigente) return
+        setContactos(lista)
+        setError(false)
+      },
+      () => vigente && setError(true),
+    )
+    return () => {
+      vigente = false
     }
+  }, [intento])
+
+  const reintentar = () => {
+    setError(false)
+    setIntento((n) => n + 1)
   }
 
-  const filtrados = leads.filter((l) => {
-    const matchEstado = filtroEstado === 'todos' || l.estado === filtroEstado
-    const matchOrigen = filtroOrigen === 'todos' || l.origen === filtroOrigen
-    return matchEstado && matchOrigen
-  })
-
-  const counts = {
-    todos: leads.length,
-    nuevo: leads.filter((l) => l.estado === 'nuevo').length,
-    contactado: leads.filter((l) => l.estado === 'contactado').length,
-    cerrado: leads.filter((l) => l.estado === 'cerrado').length,
+  const actualizar = (c: LeadResponse) => {
+    setContactos((prev) => prev?.map((x) => (x.id === c.id ? c : x)) ?? prev)
+    setSeleccionado(c)
   }
+
+  const quitar = (id: string) => {
+    setContactos((prev) => prev?.filter((x) => x.id !== id) ?? prev)
+    setSeleccionado(null)
+  }
+
+  const lista = contactos ?? []
+  const texto = busqueda.trim().toLowerCase()
+  const visibles = lista.filter(
+    (c) =>
+      (filtro === 'todos' || c.estado === filtro) &&
+      (origen === 'todos' || c.origen === origen) &&
+      (!texto || [c.nombre, c.telefono, c.email].some((campo) => campo?.toLowerCase().includes(texto))),
+  )
+  const total = (e: EstadoLead) => lista.filter((c) => c.estado === e).length
+  const origenes = [...new Set(lista.map((c) => c.origen))]
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Leads</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Contactos capturados a través del sitio.
-        </p>
+    <div className="space-y-5">
+      <EncabezadoPanel
+        titulo="Contactos"
+        descripcion="Personas que dejaron sus datos en el sitio sin enviar cotización. Escríbeles para convertirlas en venta."
+      />
+
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <FiltroChips
+          etiqueta="Filtrar por estado"
+          valor={filtro}
+          onCambio={setFiltro}
+          opciones={[
+            { valor: 'todos', texto: 'Todos', total: lista.length },
+            { valor: 'nuevo', texto: 'Nuevos', total: total('nuevo') },
+            { valor: 'contactado', texto: 'Contactados', total: total('contactado') },
+            { valor: 'cerrado', texto: 'Cerrados', total: total('cerrado') },
+          ]}
+        />
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Seleccion aria-label="Filtrar por origen" value={origen} onChange={(e) => setOrigen(e.target.value)} className="bg-card sm:w-48">
+            <option value="todos">Todos los orígenes</option>
+            {origenes.map((o) => (
+              <option key={o} value={o}>
+                {ORIGEN[o] ?? o}
+              </option>
+            ))}
+          </Seleccion>
+          <label className="relative sm:w-64">
+            <span className="sr-only">Buscar contactos</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Nombre, teléfono o correo" className="bg-card pl-9" />
+          </label>
+        </div>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        {/* Por estado */}
-        <div className="flex flex-wrap gap-2">
-          {FILTROS_ESTADO.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFiltroEstado(f.value)}
-              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                filtroEstado === f.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              {f.label}
-              <span className="ml-1.5 rounded-full bg-background/20 px-1.5 text-xs">
-                {counts[f.value]}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Por origen */}
-        <select
-          value={filtroOrigen}
-          onChange={(e) => setFiltroOrigen(e.target.value)}
-          className="rounded-lg border bg-background px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="todos">Todos los orígenes</option>
-          {ORIGENES_DISPONIBLES.map((o) => (
-            <option key={o} value={o}>{ORIGEN_LABELS[o] ?? o}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Tabla */}
-      {loading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full rounded-xl" />
-          ))}
-        </div>
-      ) : filtrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-          <Users className="size-10 text-muted-foreground/30" />
-          <p className="text-sm text-muted-foreground">No hay leads con los filtros aplicados.</p>
-        </div>
+      {error ? (
+        <EstadoError texto="No se pudieron cargar los contactos. Revisa la conexión con el servidor." onReintentar={reintentar} />
+      ) : !contactos ? (
+        <CargandoFilas />
+      ) : visibles.length === 0 ? (
+        <EstadoVacio
+          icono={Users}
+          titulo={lista.length === 0 ? 'Todavía no hay contactos' : 'Nada con estos filtros'}
+          texto={lista.length === 0 ? 'Cuando alguien deje sus datos en la pestaña «Contacto» del sitio aparecerá aquí.' : 'Prueba con otro estado u origen, o borra la búsqueda.'}
+        />
       ) : (
-        <div className="rounded-xl border overflow-hidden">
+        <MarcoTabla>
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b">
+            <thead className="border-b bg-muted/50 text-left text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Contacto</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Origen</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Fecha</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3 font-medium">Contacto</th>
+                <th className="hidden px-4 py-3 font-medium md:table-cell">Llegó por</th>
+                <th className="hidden px-4 py-3 font-medium sm:table-cell">Fecha</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="w-8 px-2 py-3">
+                  <span className="sr-only">Abrir</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filtrados.map((lead) => (
-                <tr
-                  key={lead.id}
-                  className="hover:bg-muted/30 transition-colors cursor-pointer"
-                  onClick={() => setSeleccionado(lead)}
-                >
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-foreground">{lead.nombre}</p>
-                    <p className="text-xs text-muted-foreground">{lead.telefono}</p>
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">
-                    {ORIGEN_LABELS[lead.origen] ?? lead.origen}
-                  </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">
-                    {fmtFecha(lead.fecha)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <EstadoBadge estado={lead.estado} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <ChevronDown className="size-4 text-muted-foreground -rotate-90" />
-                  </td>
-                </tr>
-              ))}
+              {visibles.map((c) => {
+                const estado = ESTADO[c.estado]
+                return (
+                  <tr key={c.id} className="cursor-pointer transition-colors hover:bg-muted/40" onClick={() => setSeleccionado(c)}>
+                    <td className="px-4 py-3">
+                      <button type="button" className="text-left font-medium hover:underline focus-visible:underline focus-visible:outline-none" onClick={() => setSeleccionado(c)}>
+                        {c.nombre}
+                      </button>
+                      <p className="text-xs text-muted-foreground">{c.telefono}</p>
+                      {c.notas && <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{c.notas}</p>}
+                    </td>
+                    <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">{ORIGEN[c.origen] ?? c.origen}</td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground sm:table-cell">
+                      {fmtFecha(c.fecha)}
+                      {c.estado === 'nuevo' && <p className="text-xs font-medium text-amber-800">{haceCuanto(c.fecha)}</p>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <EtiquetaEstado texto={estado.texto} tono={estado.tono} />
+                    </td>
+                    <td className="px-2 py-3 text-right">
+                      <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
-        </div>
+        </MarcoTabla>
       )}
 
-      {/* Modal de detalle */}
-      {seleccionado && (
-        <DetalleLead
-          lead={seleccionado}
-          onClose={() => setSeleccionado(null)}
-          onEstadoChange={handleEstadoChange}
-        />
-      )}
+      {seleccionado && <DetalleContacto key={seleccionado.id} contacto={seleccionado} onCerrar={() => setSeleccionado(null)} onCambio={actualizar} onBorrado={quitar} />}
     </div>
   )
 }

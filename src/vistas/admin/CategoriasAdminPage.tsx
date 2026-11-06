@@ -14,7 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -33,12 +32,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
 
 import { categoriasService } from '@/services/categorias'
 import { adminProductosService, motivosDeError } from '@/services/adminProductos'
 import { Seleccion } from '@/components/admin/producto/campos'
 import type { Categoria } from '@/types/categoria'
+import { CargandoFilas, EncabezadoPanel, EstadoError, EstadoVacio, EtiquetaEstado } from '@/components/admin/panel'
+import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
 // Schema del formulario
@@ -278,57 +278,43 @@ function CategoriaDialog({ open, categoria, secciones, onClose, onSaved }: Categ
 }
 
 // ---------------------------------------------------------------------------
-// Tarjeta de categoría
+// Fila de categoría (sección o familia)
 // ---------------------------------------------------------------------------
 
-interface CategoriaCardProps {
+interface FilaCategoriaProps {
   categoria: Categoria
-  productCount: number
+  productos: number
+  familia?: boolean
   onEdit: () => void
   onDelete: () => void
 }
 
-function CategoriaCard({ categoria, productCount, onEdit, onDelete }: CategoriaCardProps) {
+function FilaCategoria({ categoria, productos, familia = false, onEdit, onDelete }: FilaCategoriaProps) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-muted/30 transition-colors">
-      {categoria.imagen ? (
-        <img
-          src={categoria.imagen}
-          alt={categoria.nombre}
-          className="size-14 shrink-0 rounded-lg object-cover border"
-        />
-      ) : (
-        <div className="size-14 shrink-0 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-          <Tag className="size-6" />
-        </div>
-      )}
-
-      <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{categoria.nombre}</p>
-        {categoria.descripcion && (
-          <p className="text-sm text-muted-foreground truncate">{categoria.descripcion}</p>
-        )}
-        <Badge variant="secondary" className="mt-1 text-xs">
-          {productCount} {productCount === 1 ? 'producto' : 'productos'}
-        </Badge>
+    <div className={cn('flex items-center gap-3 px-4 py-3', familia && 'pl-6 sm:pl-14')}>
+      {!familia &&
+        (categoria.imagen ? (
+          <img src={categoria.imagen} alt="" className="size-10 shrink-0 rounded-lg border bg-white object-contain" />
+        ) : (
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+            <Tag className="size-5" aria-hidden />
+          </div>
+        ))}
+      <div className="min-w-0 flex-1">
+        <p className={cn('flex flex-wrap items-center gap-2', familia ? 'text-sm' : 'font-semibold')}>
+          <span className="truncate">{categoria.nombre}</span>
+          {categoria.estado === 'oculta' && <EtiquetaEstado texto="Oculta" tono="neutro" />}
+        </p>
+        {categoria.descripcion && !familia && <p className="truncate text-sm text-muted-foreground">{categoria.descripcion}</p>}
       </div>
-
+      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+        {productos} producto{productos === 1 ? '' : 's'}
+      </span>
       <div className="flex shrink-0 gap-1">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={onEdit}
-          aria-label={`Editar ${categoria.nombre}`}
-        >
+        <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label={`Editar ${categoria.nombre}`}>
           <Pencil className="size-3.5" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="text-muted-foreground hover:text-destructive"
-          onClick={onDelete}
-          aria-label={`Eliminar ${categoria.nombre}`}
-        >
+        <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive" onClick={onDelete} aria-label={`Eliminar ${categoria.nombre}`}>
           <Trash2 className="size-3.5" />
         </Button>
       </div>
@@ -340,11 +326,16 @@ function CategoriaCard({ categoria, productCount, onEdit, onDelete }: CategoriaC
 // Página principal
 // ---------------------------------------------------------------------------
 
+const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
+
+const ordenar = (a: Categoria, b: Categoria) => a.orden - b.orden || a.nombre.localeCompare(b.nombre, 'es')
+
 export default function CategoriasAdminPage() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [productCountMap, setProductCountMap] = useState<Map<string, number>>(new Map())
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState(false)
+  const [intento, setIntento] = useState(0)
 
   // Dialog estado
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -356,24 +347,33 @@ export default function CategoriasAdminPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([
-      categoriasService.listar(true),
-      adminProductosService.listar({ limit: 100 }),
-    ])
+    let vigente = true
+    Promise.all([categoriasService.listar(true), adminProductosService.listar({ limit: 100 })])
       .then(([cats, pagina]) => {
+        if (!vigente) return
         setCategorias(cats)
         const countMap = new Map<string, number>()
         cats.forEach((c) => countMap.set(c.id, 0))
         pagina.productos.forEach((p) =>
-          [p.categoria_principal, ...p.categorias].forEach((cid) => {
+          new Set([p.categoria_principal, ...p.categorias]).forEach((cid) => {
             if (cid) countMap.set(cid, (countMap.get(cid) ?? 0) + 1)
-          })
+          }),
         )
         setProductCountMap(countMap)
+        setError(false)
       })
-      .catch(() => setError('No se pudo cargar las categorías.'))
-      .finally(() => setLoading(false))
-  }, [])
+      .catch(() => vigente && setError(true))
+      .finally(() => vigente && setLoading(false))
+    return () => {
+      vigente = false
+    }
+  }, [intento])
+
+  const reintentar = () => {
+    setError(false)
+    setLoading(true)
+    setIntento((n) => n + 1)
+  }
 
   const handleSaved = (saved: Categoria) => {
     setCategorias((prev) => {
@@ -413,60 +413,73 @@ export default function CategoriasAdminPage() {
       await categoriasService.eliminar(deleteTarget.id)
       setCategorias((prev) => prev.filter((c) => c.id !== deleteTarget.id))
       setDeleteTarget(null)
-    } catch {
-      setDeleteError('No se pudo eliminar la categoría. Intenta de nuevo.')
+    } catch (e) {
+      setDeleteError(motivosDeError(e).join(' · ') || 'No se pudo eliminar la categoría. Intenta de nuevo.')
     }
   }
 
-  const deleteCount = deleteTarget ? (productCountMap.get(deleteTarget.id) ?? 0) : 0
+  const secciones = categorias.filter((c) => !c.padre).sort(ordenar)
+  const familiasDe = (id: string) => categorias.filter((c) => c.padre === id).sort(ordenar)
+  // Las familias cuyo padre ya no existe se muestran aparte para poder corregirlas.
+  const huerfanas = categorias.filter((c) => c.padre && !categorias.some((s) => s.id === c.padre))
+  const productosDe = (id: string) => productCountMap.get(id) ?? 0
+  const productosDeSeccion = (id: string) => productosDe(id) + familiasDe(id).reduce((n, f) => n + productosDe(f.id), 0)
+
+  // El servidor no deja borrar una categoría con familias o productos: se explica antes de intentarlo.
+  const familiasDelBorrado = deleteTarget ? familiasDe(deleteTarget.id).length : 0
+  const productosDelBorrado = deleteTarget ? productosDe(deleteTarget.id) : 0
+  const bloqueado = familiasDelBorrado > 0 || productosDelBorrado > 0
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Categorías</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Organiza el catálogo en categorías.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Nueva categoría
-        </Button>
-      </header>
+    <div className="space-y-5">
+      <EncabezadoPanel
+        titulo="Categorías"
+        descripcion={`${plural(secciones.length, 'sección', 'secciones')} y ${plural(categorias.length - secciones.length, 'familia', 'familias')}. Cada una tiene su página en el sitio.`}
+        acciones={
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            Nueva categoría
+          </Button>
+        }
+      />
 
-      {error && (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </p>
-      )}
-
-      {loading ? (
-        <div className="flex h-48 items-center justify-center text-muted-foreground">
-          Cargando categorías…
-        </div>
+      {error ? (
+        <EstadoError texto="No se pudieron cargar las categorías. Revisa la conexión con el servidor." onReintentar={reintentar} />
+      ) : loading ? (
+        <CargandoFilas filas={4} />
+      ) : categorias.length === 0 ? (
+        <EstadoVacio
+          icono={Tag}
+          titulo="Aún no hay categorías"
+          texto="Crea primero una sección (por ejemplo, «Acero de refuerzo») y dentro sus familias («Varilla y alambrón»)."
+          accion={
+            <Button onClick={openCreate}>
+              <Plus className="size-4" /> Nueva categoría
+            </Button>
+          }
+        />
       ) : (
-        <>
-          <Separator />
-          {categorias.length === 0 ? (
-            <div className="flex h-48 flex-col items-center justify-center gap-3 text-muted-foreground">
-              <Tag className="size-8 opacity-40" />
-              <p className="text-sm">Aún no hay categorías. Crea la primera.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {categorias.map((cat) => (
-                <CategoriaCard
-                  key={cat.id}
-                  categoria={cat}
-                  productCount={productCountMap.get(cat.id) ?? 0}
-                  onEdit={() => openEdit(cat)}
-                  onDelete={() => openDelete(cat)}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        <ul className="space-y-3">
+          {[...secciones, ...huerfanas].map((seccion) => (
+            <li key={seccion.id} className="overflow-hidden rounded-xl border bg-card">
+              <FilaCategoria
+                categoria={seccion}
+                productos={productosDeSeccion(seccion.id)}
+                onEdit={() => openEdit(seccion)}
+                onDelete={() => openDelete(seccion)}
+              />
+              {familiasDe(seccion.id).length > 0 && (
+                <ul className="divide-y border-t bg-muted/20" aria-label={`Familias de ${seccion.nombre}`}>
+                  {familiasDe(seccion.id).map((f) => (
+                    <li key={f.id}>
+                      <FilaCategoria categoria={f} productos={productosDe(f.id)} familia onEdit={() => openEdit(f)} onDelete={() => openDelete(f)} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
 
       {/* Dialog crear / editar */}
@@ -474,7 +487,7 @@ export default function CategoriasAdminPage() {
         key={dialogKey}
         open={dialogOpen}
         categoria={editTarget}
-        secciones={categorias.filter((c) => !c.padre && c.id !== editTarget?.id)}
+        secciones={secciones.filter((c) => c.id !== editTarget?.id)}
         onClose={() => {
           setDialogOpen(false)
           setEditTarget(undefined)
@@ -485,38 +498,42 @@ export default function CategoriasAdminPage() {
       {/* AlertDialog eliminar */}
       <AlertDialog
         open={!!deleteTarget}
-        onOpenChange={(v) => { if (!v) setDeleteTarget(null) }}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTarget(null)
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
+            <AlertDialogTitle>{bloqueado ? `«${deleteTarget?.nombre}» no se puede eliminar todavía` : '¿Eliminar categoría?'}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>
-                  Vas a eliminar <strong className="text-foreground">{deleteTarget?.nombre}</strong>.
-                  Esta acción no se puede deshacer.
-                </p>
-                {deleteCount > 0 && (
-                  <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                    ⚠️ Esta categoría tiene <strong>{deleteCount}</strong>{' '}
-                    {deleteCount === 1 ? 'producto asignado' : 'productos asignados'}.
-                    Los productos no se eliminarán, pero quedarán sin esta categoría.
+                {bloqueado ? (
+                  <p>
+                    Tiene{' '}
+                    {[
+                      familiasDelBorrado > 0 && `${familiasDelBorrado} familia${familiasDelBorrado === 1 ? '' : 's'}`,
+                      productosDelBorrado > 0 && `${productosDelBorrado} producto${productosDelBorrado === 1 ? '' : 's'}`,
+                    ]
+                      .filter(Boolean)
+                      .join(' y ')}
+                    . Muévelos a otra categoría primero, o márcala como <strong>oculta</strong> para que deje de verse en el sitio.
+                  </p>
+                ) : (
+                  <p>
+                    Vas a eliminar <strong className="text-foreground">{deleteTarget?.nombre}</strong> y su página del sitio. No se puede deshacer.
                   </p>
                 )}
-                {deleteError && (
-                  <p className="text-destructive">{deleteError}</p>
-                )}
+                {deleteError && <p className="text-destructive">{deleteError}</p>}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={confirmDelete}
-            >
-              {deleteCount > 0 ? 'Eliminar de todas formas' : 'Eliminar'}
-            </AlertDialogAction>
+            <AlertDialogCancel>{bloqueado ? 'Entendido' : 'Cancelar'}</AlertDialogCancel>
+            {!bloqueado && (
+              <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={confirmDelete}>
+                Eliminar
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
