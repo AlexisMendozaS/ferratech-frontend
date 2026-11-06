@@ -15,13 +15,28 @@ export class ErrorApi extends Error {
   }
 }
 
+/**
+ * En el servidor, todas las páginas piden a la API desde las mismas máquinas de Vercel. Con el
+ * secreto `SITIO_TOKEN` (el mismo en el backend) el sitio le dice al backend la IP del cliente que
+ * pidió la página, para que el límite de peticiones se cuente por cliente y no bloquee a todos.
+ * La IP la deja el middleware (`src/middleware.ts`) para cada petición.
+ */
+function cabecerasDelServidor(): Record<string, string> {
+  if (!import.meta.env.SSR) return {}
+  const token = process.env.SITIO_TOKEN
+  const ip = (globalThis as { __ferratechCliente?: { getStore(): string | undefined } }).__ferratechCliente?.getStore()
+  return token && ip ? { 'x-ferratech-sitio': token, 'x-ferratech-cliente': ip } : {}
+}
+
 async function pedir<T>(ruta: string, params?: Record<string, string | number | undefined | null>): Promise<T | null> {
   const url = new URL(API_URL + ruta)
   for (const [k, v] of Object.entries(params ?? {})) {
     if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v))
   }
   // Identifica al sitio ante el filtro antiscraping del backend (en el navegador se ignora).
-  const r = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'FerraTech-Web/1.0 (Astro)' } })
+  const r = await fetch(url, {
+    headers: { Accept: 'application/json', 'User-Agent': 'FerraTech-Web/1.0 (Astro)', ...cabecerasDelServidor() },
+  })
   if (r.status === 404) return null
   if (!r.ok) throw new ErrorApi(r.status, ruta)
   return (await r.json()) as T
