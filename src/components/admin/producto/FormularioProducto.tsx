@@ -22,6 +22,7 @@ import { PestanaGeneral } from './PestanaGeneral'
 import { PestanaImagenes } from './PestanaImagenes'
 import { PestanaInterno } from './PestanaInterno'
 import { PestanaVariantes } from './PestanaVariantes'
+import { VistaPrevia } from './VistaPrevia'
 
 const ETIQUETA_ESTADO: Record<EstadoProducto, { texto: string; clase: string }> = {
   borrador: { texto: 'Borrador', clase: 'bg-muted text-muted-foreground' },
@@ -96,6 +97,7 @@ export function FormularioProducto({ producto: inicial, categorias }: Props) {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <VistaPrevia productoId={producto?.id} estado={estado} />
             {estado === 'publicado' && producto && (
               <Button asChild variant="ghost">
                 <a href={`/producto/${producto.slug}`} target="_blank" rel="noreferrer"><ExternalLink /> Ver en el sitio</a>

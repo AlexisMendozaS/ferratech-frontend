@@ -29,6 +29,8 @@ function sesion(): string {
 
 export function registrarEvento(tipo: TipoEvento, datos: Datos = {}): void {
   if (typeof window === 'undefined') return
+  // La vista previa del panel no es un cliente: no cuenta en los KPIs.
+  if (location.pathname.startsWith('/vista-previa')) return
   try {
     void fetch(`${API_URL}/eventos`, {
       method: 'POST',

@@ -6,7 +6,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { defineMiddleware } from 'astro:middleware'
 
-const EXCLUIDAS = /^\/(admin|login|_astro|_image|mantenimiento)(\/|$)/
+const EXCLUIDAS = /^\/(admin|login|_astro|_image|mantenimiento|vista-previa)(\/|$)/
 
 // IP del cliente de cada petición, para que `src/lib/api.ts` la pase al backend (límite de peticiones
 // por cliente, INI-011). Va en globalThis para que api.ts no importe módulos de Node (también corre

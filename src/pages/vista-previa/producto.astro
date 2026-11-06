@@ -1,0 +1,74 @@
+---
+/**
+ * Vista previa de un producto desde el panel (INI-003): la misma ficha que la página pública, armada
+ * con lo que hay en el formulario, sin guardar nada.
+ *
+ * El panel la abre en un marco enviando por POST su sesión (`token`), el producto (`datos`, en el
+ * formato de la API) y, si se está editando, su `id`. El backend comprueba la sesión y aplica la
+ * misma lista blanca que la página pública (DEC-012): lo interno nunca llega aquí.
+ * No se indexa, no se guarda en caché y no cuenta en los KPIs.
+ */
+import Publico from '@/layouts/Publico.astro'
+import FichaProducto from '@/componentes-astro/FichaProducto.astro'
+import { API_URL } from '@/lib/api'
+import { datosDeFicha, type DatosFicha } from '@/lib/ficha'
+import type { ProductoPublico } from '@/types/producto'
+
+export const prerender = false
+
+if (Astro.request.method !== 'POST') return Astro.redirect('/admin/productos')
+
+Astro.response.headers.set('Cache-Control', 'no-store')
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+
+const formulario = await Astro.request.formData()
+const token = String(formulario.get('token') ?? '')
+const id = String(formulario.get('id') ?? '')
+const cuerpo = String(formulario.get('datos') ?? '')
+
+let p: ProductoPublico | null = null
+let datos: DatosFicha | null = null
+let error: string | null = null
+try {
+  const r = await fetch(`${API_URL}/admin/productos/vista-previa${id ? `?id=${encodeURIComponent(id)}` : ''}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      'User-Agent': 'FerraTech-Web/1.0 (Astro)',
+    },
+    body: cuerpo,
+  })
+  if (r.ok) {
+    p = (await r.json()) as ProductoPublico
+    datos = await datosDeFicha(p)
+  } else if (r.status === 401 || r.status === 403) {
+    error = 'Tu sesión del panel expiró. Vuelve a entrar y abre la vista previa otra vez.'
+  } else if (r.status === 422) {
+    const detalle = (await r.json().catch(() => null)) as { detail?: unknown } | null
+    const motivos = Array.isArray(detalle?.detail) ? detalle.detail.map((d) => (typeof d === 'string' ? d : (d as { msg?: string }).msg ?? '')).filter(Boolean) : []
+    error = `Hay datos que no se pueden mostrar todavía${motivos.length ? `: ${motivos.join(' · ')}` : '.'}`
+  } else {
+    error = `No se pudo armar la vista previa (el servidor respondió ${r.status}).`
+  }
+} catch {
+  error = 'No se pudo armar la vista previa: el servidor no respondió.'
+}
+---
+
+<Publico titulo={p ? `Vista previa: ${p.nombre}` : 'Vista previa'} noindex>
+  <p class="border-b border-amber-300 bg-amber-100 px-4 py-2 text-center text-sm text-amber-950" role="status">
+    <strong>Vista previa.</strong> Así se verá en el sitio. No se ha guardado nada y solo tú la ves.
+  </p>
+  {
+    p && datos ? (
+      <FichaProducto p={p} datos={datos} vistaPrevia />
+    ) : (
+      <div class="mx-auto max-w-xl px-4 py-16 text-center">
+        <p class="text-lg font-semibold">No se pudo mostrar la vista previa</p>
+        <p class="mt-2 text-muted-foreground">{error}</p>
+      </div>
+    )
+  }
+</Publico>
