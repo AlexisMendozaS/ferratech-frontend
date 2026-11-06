@@ -1,0 +1,48 @@
+---
+/**
+ * Créditos de las fotos de terceros con licencia libre (CC BY y CC BY-SA piden atribución).
+ * La foto modificada se comparte con la misma licencia que la original.
+ */
+import Publico from '@/layouts/Publico.astro'
+import { CREDITOS_IMAGENES } from '@/lib/creditos'
+
+export const prerender = true
+---
+
+<Publico titulo="Créditos de imágenes" descripcion="Autores y licencias de las fotos de terceros que usa FerraTech." noindex>
+  <div class="mx-auto max-w-3xl px-4 pt-10 sm:px-6">
+    <h1 class="text-3xl font-bold">Créditos de imágenes</h1>
+    <p class="mt-3 text-muted-foreground">
+      Algunas fotos del catálogo son de terceros y se usan con licencia libre. Las adaptamos (fondo blanco y recorte) y las compartimos con
+      la misma licencia que la original.
+    </p>
+    <ul class="mt-8 divide-y rounded-lg border bg-card">
+      {
+        CREDITOS_IMAGENES.map((c) => (
+          <li class="px-4 py-4 text-sm">
+            <p class="font-semibold">
+              <a href={`/producto/${c.slug}`} class="hover:underline">
+                {c.producto}
+              </a>
+            </p>
+            <p class="mt-1 text-muted-foreground">
+              Foto de {c.autor} ·{' '}
+              {c.licenciaUrl ? (
+                <a href={c.licenciaUrl} class="underline" rel="license noopener noreferrer" target="_blank">
+                  {c.licencia}
+                </a>
+              ) : (
+                c.licencia
+              )}{' '}
+              ·{' '}
+              <a href={c.fuente} class="underline" rel="noopener noreferrer" target="_blank">
+                original en Wikimedia Commons
+              </a>
+            </p>
+            <p class="mt-1 text-muted-foreground">{c.cambios}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Publico>
