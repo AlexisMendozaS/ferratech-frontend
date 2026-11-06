@@ -8,9 +8,12 @@ interface Props {
   prioridad?: boolean
   /** En resultados de búsqueda: para registrar en qué posición se hizo clic (INI-009). */
   busqueda?: { q: string; posicion: number }
+  /** Nivel del título: h2 si la lista va justo debajo del h1 de la página; h3 si hay un h2 antes. */
+  nivel?: 2 | 3
 }
 
-const { producto: p, prioridad = false, busqueda } = Astro.props
+const { producto: p, prioridad = false, busqueda, nivel = 3 } = Astro.props
+const Titulo = nivel === 2 ? 'h2' : 'h3'
 const href = `/producto/${p.slug}`
 ---
 
@@ -40,9 +43,9 @@ const href = `/producto/${p.slug}`
     {p.disponibilidad === 'bajo_pedido' && <span class="absolute left-2 top-2 rounded bg-muted px-2 py-0.5 text-xs font-medium">Bajo pedido</span>}
   </a>
   <div class="flex flex-1 flex-col gap-2 p-4">
-    <h3 class="font-semibold leading-snug">
+    <Titulo class="font-semibold leading-snug">
       <a href={href} class="hover:underline">{p.nombre}</a>
-    </h3>
+    </Titulo>
     {p.descripcion_corta && <p class="line-clamp-2 text-sm text-muted-foreground">{p.descripcion_corta}</p>}
     <div class="mt-auto flex items-center justify-between gap-2 pt-2">
       <span class="text-xs text-muted-foreground">{p.num_variantes > 1 ? `${p.num_variantes} opciones` : ' '}</span>

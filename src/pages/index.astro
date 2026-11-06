@@ -46,6 +46,7 @@ const descripcion = q
   jsonld={q ? [] : [organizacion(origen), sitioConBuscador(origen)]}
   busqueda={q}
   sinBuscador={!q}
+  precargar={q ? resultado.productos[0]?.imagen?.url : undefined}
 >
   {
     !q && (
@@ -127,7 +128,12 @@ const descripcion = q
           )}
           <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {resultado.productos.map((p, i) => (
-              <TarjetaProducto producto={p} prioridad={i < 4} busqueda={{ q, posicion: (pagina - 1) * POR_PAGINA + i + 1 }} />
+              <TarjetaProducto
+                producto={p}
+                prioridad={i < 4}
+                nivel={resultado.modo === 'parecidos' ? 3 : 2}
+                busqueda={{ q, posicion: (pagina - 1) * POR_PAGINA + i + 1 }}
+              />
             ))}
           </div>
           <Paginacion pagina={pagina} total={resultado.total} porPagina={POR_PAGINA} url={Astro.url} />

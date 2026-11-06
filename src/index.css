@@ -64,8 +64,8 @@
     --primary:            oklch(0.295 0.049 229.5);
     --primary-foreground: oklch(1 0 0);
 
-    /* Tangerine #E67E22 → oklch(0.662 0.168 52) */
-    --secondary:            oklch(0.662 0.168 52);
+    /* Tangerine oscurecido (#BE5300): con texto blanco da 4.7:1 (WCAG AA). El #E67E22 original daba 3.3:1. */
+    --secondary:            oklch(0.57 0.16 52);
     --secondary-foreground: oklch(1 0 0);
 
     /* White smoke #F5F5F5 */
@@ -78,9 +78,9 @@
     --popover:            oklch(1 0 0);
     --popover-foreground: oklch(0.225 0 0);
 
-    /* Battleship gray #7F8C8D */
+    /* Gris de textos secundarios (#5D6C6E): 5:1 sobre el fondo (WCAG AA). El #7F8C8D original no llegaba a 4.5:1. */
     --muted:            oklch(0.94 0 0);
-    --muted-foreground: oklch(0.572 0.018 197);
+    --muted-foreground: oklch(0.52 0.018 197);
 
     /* Persian red #C0392B → oklch(0.455 0.176 25) */
     --accent:            oklch(0.455 0.176 25);

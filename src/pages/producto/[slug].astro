@@ -72,6 +72,7 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-r
   descripcion={p.meta_descripcion ?? recortar(p.descripcion_corta ?? p.descripcion)}
   canonica={`/producto/${p.slug}`}
   imagen={galeria[0]?.url}
+  precargar={galeria[0]?.url}
   tipo="product"
   jsonld={[productoLd(origen, p, familia?.nombre ?? null), migas(origen, ruta)]}
 >

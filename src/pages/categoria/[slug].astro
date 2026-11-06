@@ -39,6 +39,7 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-r
   descripcion={categoria.meta_descripcion ?? recortar(`${categoria.descripcion ?? categoria.nombre}. ${LEMA}.`)}
   canonica={`/categoria/${categoria.slug}${pagina > 1 ? `?pagina=${pagina}` : ''}`}
   jsonld={[migas(origen, ruta)]}
+  precargar={resultado.productos[0]?.imagen?.url}
 >
   <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
     <nav aria-label="Ruta" class="text-sm text-muted-foreground">
@@ -85,7 +86,7 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-r
 
     <p class="mt-6 text-sm text-muted-foreground">{resultado.total} producto(s)</p>
     <div class="mt-3 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
-      {resultado.productos.map((p, i) => <TarjetaProducto producto={p} prioridad={i < 4} />)}
+      {resultado.productos.map((p, i) => <TarjetaProducto producto={p} prioridad={i < 4} nivel={2} />)}
     </div>
     {
       resultado.total === 0 && (

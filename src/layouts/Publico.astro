@@ -23,6 +23,8 @@ interface Props {
   imagen?: string | null
   jsonld?: object[]
   tipo?: 'website' | 'product'
+  /** Imagen que se ve primero (LCP): se pide desde el <head>, antes de que el navegador llegue a ella. */
+  precargar?: string | null
   /** Texto del buscador del encabezado. */
   busqueda?: string
   /** En la portada el buscador grande va en el contenido, no en el encabezado. */

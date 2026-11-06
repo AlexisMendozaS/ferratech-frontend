@@ -4,7 +4,11 @@ import Publico from '@/layouts/Publico.astro'
 import CarritoPage from '@/vistas/CarritoPage'
 ---
 
-<Publico titulo="Mi cotización" noindex>
+<Publico
+  titulo="Mi cotización"
+  descripcion="Revisa los materiales que elegiste y envía tu solicitud: te respondemos con precio y entrega, sin costo."
+  noindex
+>
   <CarritoPage client:only="react">
     <p slot="fallback" class="mx-auto max-w-3xl px-4 py-16 text-center text-muted-foreground">Cargando tu cotización…</p>
   </CarritoPage>

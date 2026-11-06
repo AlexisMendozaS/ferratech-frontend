@@ -15,9 +15,11 @@ interface Props {
   imagen?: string | null
   jsonld?: object[]
   tipo?: 'website' | 'product'
+  /** Imagen que se ve primero (LCP): se pide desde el <head>, antes de que el navegador llegue a ella. */
+  precargar?: string | null
 }
 
-const { titulo, descripcion, canonica, noindex = false, imagen, jsonld = [], tipo = 'website' } = Astro.props
+const { titulo, descripcion, canonica, noindex = false, imagen, jsonld = [], tipo = 'website', precargar } = Astro.props
 const origen = (Astro.site?.origin ?? Astro.url.origin).replace(/\/$/, '')
 const urlCanonica = `${origen}${canonica ?? Astro.url.pathname}`
 const tituloCompleto = titulo.includes(NOMBRE_SITIO) ? titulo : `${titulo} | ${NOMBRE_SITIO}`
@@ -33,6 +35,7 @@ const tituloCompleto = titulo.includes(NOMBRE_SITIO) ? titulo : `${titulo} | ${N
     <link rel="canonical" href={urlCanonica} />
     <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {precargar && <link rel="preload" as="image" href={precargar} fetchpriority="high" />}
     <meta name="theme-color" content="#2C3E50" />
 
     <meta property="og:site_name" content={NOMBRE_SITIO} />
